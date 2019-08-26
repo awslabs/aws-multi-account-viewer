@@ -1,0 +1,479 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: > 
+  Template for primary account that will hold everything.
+  aws cloudformation create-stack --stack-name MultiAccount --template-body file://MainTemplate.yaml --capabilities CAPABILITY_IAM
+
+Parameters:
+  Accounts:
+    Type: String
+    Default: '111111111111,222222222222,333333333333,444444444444,55555555555'
+    Description: Account Numbers for all your sub accounts and admin account seperated by commas e.g '111111111111,2222222222222'
+  LogRetention:
+    Type: Number
+    Default: 3 # in Days: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
+    Description: Days to keep lambda logs
+  TableMultiAccount:
+    Type: String
+    Default: multi-account-table
+    Description: Name of DynamoDB table
+  SourceAccount:
+    Type: Number
+    Default: '111111111111'
+    Description: Administrator Account that is running this cloudformation template (Admin Account)
+  SourceRegion:
+    Type: String
+    Default: 'ap-southeast-2'
+    Description: Region this template is running out of (Admin Account)
+  Regions:
+    Type: String
+    Default: 'ap-southeast-2,us-east-1,us-east-2'
+    Description: Regions you want watched, minimum us-east-1 for global resources like IAM.
+  # US East (Ohio)	          us-east-2
+  # US East (N. Virginia)	    us-east-1
+  # US West (N. California)	  us-west-1
+  # US West (Oregon)	        us-west-2
+  # Asia Pacific (Hong Kong)	ap-east-1
+  # Asia Pacific (Mumbai)	    ap-south-1
+  # Asia Pacific (Seoul)	    ap-northeast-2
+  # Asia Pacific (Singapore)	ap-southeast-1
+  # Asia Pacific (Sydney)	    ap-southeast-2
+  # Asia Pacific (Tokyo)	    ap-northeast-1
+  # Canada (Central)	        ca-central-1
+  # China (Beijing)	          cn-north-1
+  # China (Ningxia)	          cn-northwest-1
+  # EU (Frankfurt)	          eu-central-1
+  # EU (Ireland)	            eu-west-1
+  # EU (London)	              eu-west-2
+  # EU (Paris)	              eu-west-3
+  # EU (Stockholm)	          eu-north-1
+  # South America (São Paulo)	sa-east-1
+  # AWS GovCloud (US-East)	  us-gov-east-1
+  # AWS GovCloud (US)	        us-gov-west-1
+  CrossAccountAccessRole:
+    Description: Role in all subaccounts that gets consumed
+    Type: String
+    Default: CrossAccountAccess
+  LambdaBucketName:
+    Type: String
+    Default: multi-account-lambda-packages
+    Description: Name of your S3 private bucket in Admin Account that holds the lambda zip file
+  LambdaPackage:
+    Type: String
+    Default: functions.zip
+    Description: Name of lambda zip file including .zip e.g 'functions.zip'
+  ApiGatewayStageName:
+    Type: String
+    AllowedPattern: ^[a-z0-9]+$
+    Default: prod
+  CronTimer:
+    Type: String
+    Description: How often to update all services to DynamoDB table, recommend not going below 3 Minutes
+    Default: rate(5 minutes)
+
+Resources:
+# IAM Resources
+  LambdaBackEndRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: Allow
+            Principal:
+              Service: [lambda.amazonaws.com]
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns: 
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: !Sub "${AWS::StackName}-LambdaDynamoDB"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:*
+                Resource:
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableMultiAccount}"
+        - PolicyName: !Sub "${AWS::StackName}-LambdaAssumeRole"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource: !Sub "arn:aws:iam::*:role/${CrossAccountAccessRole}"
+        - PolicyName: !Sub "${AWS::StackName}-Lambda-Source-Account-Policy"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:List*
+                  - rds:Describe*
+                  - organizations:ListAccounts
+                  - ec2:Describe*
+                  - lambda:List*
+                  - lambda:Get*
+                  - s3:Get*
+                  - s3:List*
+                Resource: "*"
+        - PolicyName: !Sub "${AWS::StackName}-LambdaSQS"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+            - Effect: Allow
+              Action:
+              - sqs:ReceiveMessage
+              - sqs:DeleteMessage
+              - sqs:SendMessage
+              - sqs:GetQueueAttributes
+              - sqs:ChangeMessageVisibility
+              Resource: !GetAtt MyQueue.Arn
+# SQS Queue
+  MyQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      DelaySeconds: 0
+      VisibilityTimeout: 120
+
+  LambdaFunctionEventSourceMapping:
+    Type: AWS::Lambda::EventSourceMapping
+    Properties:
+      BatchSize: 1
+      Enabled: true
+      EventSourceArn: !GetAtt MyQueue.Arn
+      FunctionName: !GetAtt LambdaReceiveSQSFunction.Arn
+
+# Lambda Functions
+  LambdaSendSQSFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: send_sqs_message.lambda_handler
+      Runtime: python3.7
+      MemorySize: 128
+      Timeout: 30
+      Code:
+        S3Bucket: !Ref LambdaBucketName
+        S3Key: !Ref LambdaPackage
+      Role: !GetAtt LambdaBackEndRole.Arn
+      TracingConfig:
+        Mode: Active
+      Environment:
+        Variables:
+          ENV_SOURCE_ACCOUNT: !Ref SourceAccount
+          ENV_ACCOUNTS: !Ref Accounts
+          ENV_SOURCE_REGION: !Ref SourceRegion
+          ENV_REGIONS: !Ref Regions
+          ENV_CROSS_ACCOUNT_ROLE: !Ref CrossAccountAccessRole
+          ENV_SQSQUEUE: !Ref MyQueue
+  
+  LambdaReceiveSQSFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: receive_sqs_message.lambda_handler
+      Runtime: python3.7
+      MemorySize: 128
+      Timeout: 30
+      Code:
+        S3Bucket: !Ref LambdaBucketName
+        S3Key: !Ref LambdaPackage
+      Role: !GetAtt LambdaBackEndRole.Arn
+      TracingConfig:
+        Mode: Active
+      Environment:
+        Variables:
+          ENV_SOURCE_ACCOUNT: !Ref SourceAccount
+          ENV_SOURCE_REGION: !Ref SourceRegion
+          ENV_CROSS_ACCOUNT_ROLE: !Ref CrossAccountAccessRole
+          ENV_TABLE_NAME_MULTI: !Ref TableMultiAccount
+          ENV_SQSQUEUE: !Ref MyQueue
+
+  LambdaListTableFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: list_table.lambda_handler
+      Runtime: python3.7
+      MemorySize: 128
+      Timeout: 30
+      Code:
+        S3Bucket: !Ref LambdaBucketName
+        S3Key: !Ref LambdaPackage
+      Role: !GetAtt LambdaBackEndRole.Arn
+      TracingConfig:
+        Mode: Active
+      Environment:
+        Variables:
+          ENV_SOURCE_REGION: !Ref SourceRegion
+          ENV_TABLE_NAME_MULTI: !Ref TableMultiAccount
+
+# API Gateway Rest API
+  MyRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+        Name: !Sub ${AWS::StackName}-api
+        ApiKeySourceType: HEADER
+        Description: "Api for AWS Multi Account"
+
+# Api Gateway Resources
+  SearchResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !GetAtt MyRestApi.RootResourceId
+      RestApiId: !Ref MyRestApi
+      PathPart: 'search'
+
+  MessageResource:
+    Type: 'AWS::ApiGateway::Resource'
+    Properties:
+      ParentId: !GetAtt MyRestApi.RootResourceId
+      RestApiId: !Ref MyRestApi
+      PathPart: 'message'
+
+# Api Gateway Methods
+  APIListTable:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+        AuthorizationType: COGNITO_USER_POOLS
+        RestApiId: !Ref MyRestApi
+        ResourceId: !Ref SearchResource
+        AuthorizerId: !Ref Authorizer
+        HttpMethod: GET
+        Integration:
+            Type: AWS_PROXY
+            IntegrationHttpMethod: POST # DONT CHANGE THIS IT BREAKS EVERYTHING!!!!!
+            Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaListTableFunction.Arn}/invocations"
+            IntegrationResponses:
+                - ResponseTemplates:
+                      application/json: ""
+                  StatusCode: "200"
+                  ResponseParameters:
+                      method.response.header.Access-Control-Allow-Origin : "'*'"
+        MethodResponses:
+          - ResponseModels: { "application/json": "Empty" }
+            StatusCode: 200
+            ResponseParameters:
+                method.response.header.Access-Control-Allow-Headers: true
+                method.response.header.Access-Control-Allow-Origin: true
+                method.response.header.Access-Control-Allow-Methods: true
+
+  APISendSQS:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+        AuthorizationType: COGNITO_USER_POOLS
+        RestApiId: !Ref MyRestApi
+        ResourceId: !Ref MessageResource
+        AuthorizerId: !Ref Authorizer
+        HttpMethod: GET
+        Integration:
+            Type: AWS_PROXY
+            IntegrationHttpMethod: POST # DONT CHANGE THIS IT BREAKS EVERYTHING!!!!!
+            Uri: !Sub "arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LambdaSendSQSFunction.Arn}/invocations"
+            IntegrationResponses:
+                - ResponseTemplates:
+                      application/json: ""
+                  StatusCode: "200"
+                  ResponseParameters:
+                      method.response.header.Access-Control-Allow-Origin : "'*'"
+        MethodResponses:
+          - ResponseModels: { "application/json": "Empty" }
+            StatusCode: 200
+            ResponseParameters:
+                method.response.header.Access-Control-Allow-Headers: true
+                method.response.header.Access-Control-Allow-Origin: true
+                method.response.header.Access-Control-Allow-Methods: true
+
+  # Api Gateway Method for options
+  APIListTableOptions:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+        AuthorizationType: NONE
+        RestApiId: !Ref MyRestApi
+        ResourceId: !Ref SearchResource
+        HttpMethod: OPTIONS
+        Integration:
+            Type: MOCK
+            IntegrationHttpMethod: OPTIONS
+            RequestTemplates:
+                application/json: "{\"statusCode\": 200}"
+            IntegrationResponses:
+              - ResponseTemplates:
+                    application/json: ""
+                StatusCode: "200"
+                ResponseParameters:
+                    method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                    method.response.header.Access-Control-Allow-Methods : "'POST,OPTIONS,GET'"
+                    method.response.header.Access-Control-Allow-Origin : "'*'"
+        MethodResponses:
+          - ResponseModels: { "application/json": "Empty" }
+            StatusCode: 200
+            ResponseParameters:
+                method.response.header.Access-Control-Allow-Headers: true
+                method.response.header.Access-Control-Allow-Methods: true
+                method.response.header.Access-Control-Allow-Origin: true
+
+  APISendSQSOptions:
+    Type: "AWS::ApiGateway::Method"
+    Properties:
+        AuthorizationType: NONE
+        RestApiId: !Ref MyRestApi
+        ResourceId: !Ref MessageResource
+        HttpMethod: OPTIONS
+        Integration:
+            Type: MOCK
+            IntegrationHttpMethod: OPTIONS
+            RequestTemplates:
+                application/json: "{\"statusCode\": 200}"
+            IntegrationResponses:
+              - ResponseTemplates:
+                    application/json: ""
+                StatusCode: "200"
+                ResponseParameters:
+                    method.response.header.Access-Control-Allow-Headers: "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
+                    method.response.header.Access-Control-Allow-Methods : "'POST,OPTIONS,GET'"
+                    method.response.header.Access-Control-Allow-Origin : "'*'"
+        MethodResponses:
+          - ResponseModels: { "application/json": "Empty" }
+            StatusCode: 200
+            ResponseParameters:
+                method.response.header.Access-Control-Allow-Headers: true
+                method.response.header.Access-Control-Allow-Methods: true
+                method.response.header.Access-Control-Allow-Origin: true
+
+# Cognito User pool
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub ${AWS::StackName}_UserPool
+      AliasAttributes:
+        - 'email'
+      AutoVerifiedAttributes:
+        - 'email'
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: True
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 7
+          RequireLowercase: True
+          RequireNumbers: False
+          RequireSymbols: False
+          RequireUppercase: True
+
+# Cognito Client
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${AWS::StackName}_UserPoolClient
+      UserPoolId: !Ref CognitoUserPool
+
+# API GateWay Authorizer
+  Authorizer: 
+    Type: AWS::ApiGateway::Authorizer
+    Properties:                  
+      Type: "COGNITO_USER_POOLS"
+      IdentitySource: "method.request.header.Authorization"
+      Name: !Sub ${AWS::StackName}CognitoAuthorizer
+      RestApiId: !Ref MyRestApi
+      ProviderARNs: 
+        - !GetAtt "CognitoUserPool.Arn"   
+
+# API Gateway Deployment
+  ApiGatewayDeployment:
+    Type: 'AWS::ApiGateway::Deployment'
+    Properties:
+      RestApiId: !Ref MyRestApi
+      StageName: !Ref ApiGatewayStageName
+    DependsOn:
+      - APISendSQSOptions
+      - APIListTableOptions
+      - APISendSQS
+      - APIListTable
+
+# Cron Rule to refresh dynamodb table
+  ScheduledRule: 
+    Type: AWS::Events::Rule
+    Properties: 
+      Description: "ScheduledRule"
+      ScheduleExpression: !Ref CronTimer
+      State: "ENABLED"
+      Targets: 
+        - Arn: !GetAtt
+              - "LambdaSendSQSFunction"
+              - "Arn"
+          Id: "TargetFunctionV1"
+          Input: '{"queryStringParameters":{"function": "cron"}}'
+
+# Lambda Permission for Cron
+  PermissionForEventsToInvokeLambda: 
+    Type: AWS::Lambda::Permission
+    Properties: 
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "LambdaSendSQSFunction.Arn"
+      Principal: "events.amazonaws.com"
+      SourceArn: !GetAtt "ScheduledRule.Arn"
+
+# Lambda Permissions API Gateway
+  LambdaApiListTableGatewayInvoke: 
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "LambdaListTableFunction.Arn"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyRestApi}/*/*"
+
+# Lambda Permissions API Gateway
+  LambdaApiSendSQSGatewayInvoke: 
+    Type: "AWS::Lambda::Permission"
+    Properties:
+      Action: "lambda:InvokeFunction"
+      FunctionName: !GetAtt "LambdaSendSQSFunction.Arn"
+      Principal: "apigateway.amazonaws.com"
+      SourceArn: !Sub "arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${MyRestApi}/*/*"
+
+
+# Logs Retention for Lambdas
+  LogGroupSendFunction:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['/', ['/aws/lambda', !Ref LambdaSendSQSFunction]]
+      RetentionInDays: !Ref LogRetention
+
+  LogGroupReceiveFunction:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['/', ['/aws/lambda', !Ref LambdaReceiveSQSFunction]]
+      RetentionInDays: !Ref LogRetention
+
+  LogGroupListFunction:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['/', ['/aws/lambda', !Ref LambdaListTableFunction]]
+      RetentionInDays: !Ref LogRetention 
+
+# DynamoDB Table
+  DynamoMultiAccountTable:
+     Type: AWS::DynamoDB::Table
+     Properties: 
+       SSESpecification:
+          SSEEnabled: True
+       TableName: !Ref TableMultiAccount
+       AttributeDefinitions: 
+         - AttributeName: Id
+           AttributeType: S
+       KeySchema: 
+         - AttributeName: Id
+           KeyType: HASH
+       ProvisionedThroughput: 
+         ReadCapacityUnits: 25
+         WriteCapacityUnits: 25
+
+Outputs:
+  UserPoolId: 
+    Value: !Ref CognitoUserPool
+  userPoolWebClientId:
+    Value: !Ref CognitoUserPoolClient
+  ApiGateWayEndPoint:
+    Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiGatewayStageName}"
+  SQSEndpoint:
+    Value: !Ref MyQueue
