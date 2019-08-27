@@ -9,11 +9,11 @@ from ast import literal_eval
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Attr
 
-event = {
-    "queryStringParameters": {
-        "function": "cron"
-    }
-}
+# event = {
+#     "queryStringParameters": {
+#         "function": "cron"
+#     }
+# }
 
 # Helper class for Dynamo
 class DecimalEncoder(json.JSONEncoder):
@@ -517,13 +517,13 @@ def get_all_s3_buckets(account_number):
 
      # Use boto3 on source account
     if account_number == source_account:
-        client_s3 = boto3.client('s3')
+        client_s3 = boto3.client('s3', region_name='us-east-1')
         print(f'skipping STS for local account: {account_number}')
 
     else:
         # Log into Accounts with STS
         assume_creds = assume_sts_role(account_number, cross_account_role)
-        client_s3 = assume_creds.client('s3')
+        client_s3 = assume_creds.client('s3', region_name='us-east-1')
         print(f'Logged into Account: {account_number}')
 
     # No paginator for listing buckets
@@ -537,7 +537,7 @@ def get_all_s3_buckets(account_number):
                 'EntryType': 's3-buckets',
                 'AccountNumber': str(account_number),
                 'Name': str(i['Name']),
-                'Region': source_region,
+                'Region': 'us-east-1',
                 'CreationDate': str(i['CreationDate'])
             })
 
@@ -916,7 +916,12 @@ def handle_message_s3_buckets(account_number):
     # get current s3 buckets
     s3_list = get_all_s3_buckets(account_number=account_number)
 
-    dynamo_s3_list = get_current_table(account_number=account_number, entry_type='s3-buckets', region=source_region)
+    # This entry can't use normal scan function because organizations calls are already multi account
+    # dynamo_s3_list = table.scan(
+    #     FilterExpression=Attr("EntryType").eq("s3-buckets") & Attr("AccountNumber").eq(account_number) & Attr("Region").eq(source_account)
+    #     )['Items']
+
+    dynamo_s3_list = get_current_table(account_number=account_number, entry_type='s3-buckets', region='us-east-1')
 
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_s3_list)

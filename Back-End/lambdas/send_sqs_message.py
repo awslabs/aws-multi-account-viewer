@@ -95,7 +95,7 @@ def lambda_handler(event, context):
                 send_sqs_message(accountNumber=i, function='iam-roles', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')
-                send_sqs_message(accountNumber=i, function='s3-buckets', region='us-east-1')
+                send_sqs_message(accountNumber=i, function='s3-buckets', region='us-east-1') # mabey source_region?
 
                 for b in list_of_regions:
 
