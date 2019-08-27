@@ -35,7 +35,7 @@ except Exception as e:
 # Try connect Clients
 try:
     client_sqs = boto3.client('sqs', region_name=source_region)
-    client_s3 = boto3.client('s3', region_name=source_region)
+    # client_s3 = boto3.client('s3', region_name=source_region)
     dynamodb = boto3.resource('dynamodb', region_name=source_region)
     table = dynamodb.Table(table_name_multi)
 except Exception as e:
@@ -493,7 +493,6 @@ def get_all_ris(account_number, region):
         if i['State'] == 'active':
             var_list.append(
                 {   
-                    'Id': str(uuid.uuid4()),
                     'EntryType': 'ri',
                     'AccountNumber': str(account_number),
                     'InstanceCount': str(i['InstanceCount']),
@@ -533,10 +532,9 @@ def get_all_s3_buckets(account_number):
     for i in result['Buckets']:
         var_list.append(
             {   
-                'Id': str(uuid.uuid4()),
+                'Name': str(i['Name']),
                 'EntryType': 's3-buckets',
                 'AccountNumber': str(account_number),
-                'Name': str(i['Name']),
                 'Region': 'us-east-1',
                 'CreationDate': str(i['CreationDate'])
             })
