@@ -1,3 +1,6 @@
+// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 import React, {Component} from 'react';
 import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit';
 import BootstrapTable from 'react-bootstrap-table-next';
@@ -71,17 +74,6 @@ export class Table extends Component {
                 </div>
             );
         };
-
-        // const selectRow = {
-        //     mode: 'radio', // single row selection
-        //     clickToSelect: true
-        //   };
-
-        // const rowEvents = {
-        //     onClick: (e, row, rowIndex) => {
-        //     console.log(JSON.stringify(row))
-        //     }
-        //   };
 
         //Return a custom table with a search bar
         return (

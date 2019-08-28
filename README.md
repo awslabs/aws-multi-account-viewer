@@ -26,7 +26,6 @@ some of the current working features are:
 - [Install Overview](#install-overview) 
 - [Deploying the Solution](#deploying-the-solution)
 - [Adding-New-Services](#adding-new-services)
-- [Testing](#Testing)
 - [Troubleshooting](#Troubleshooting)
 - [License](#license)
 
@@ -149,87 +148,7 @@ yarn start
 ## Adding New Services
 
 To add a new services you need to updating 2 sqs lambdas and creating a new page in the Front-End. 
-Lets run through an example of adding all S3 buckets to our site.
-
-### Back-End - SQS Lambdas
-
-- Lets look up the documentation for s3 and for listing buckets and test it out
-- [Boto3-s3](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#client)
-- [Boto3-s3-listbuckets](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/s3.html#S3.Client.list_buckets)
-- Lets create a python environment and activate it
-
-```
-cd ~/aws-multiaccount-viewer/Back-End/lambdas
-python3.7 -m venv .venv
-source .venv/bin/activate
-pip install boto3
-```
-
-- Now lets jump into ipython or just the normal python terminal
-- copy and paste line 1 through to 29. You will need to have the environment variables set to your config:
-
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service.png)
-
-- now copy and paste line 30 to 37 into the terminal
-
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service2.png)
-
-- Now lets add the S3 client afer sqs (line 32)
-- ```client_s3 = boto3.client('s3', region_name=source_region)```
-
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service3.png)
-
-- Now lets test it:
-- ```response = client_s3.list_buckets()```
-- We should now see an array of ```response['Buckets']``` of all our buckets in the source account/region we provided:
-
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service4.png)
-
-- Now lets copy the last function (get\_all\_ris, line 465) and paste it after it:
-
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service5.png)
-
-- Lets call this function get\_all\_s3\_buckets
-- Replace all the ec2 calls with s3 and main function to list\_buckets, e.g
-- ```client_ec2 = assume_creds.client('ec2')``` to ```client_s3 = assume_creds.client('s3')```
-- ```result = client_ec2.describe_reserved_instances()``` to ```result = client_s3.list_buckets()```
-- ```result['ReservedInstances']``` to ```result['Buckets']```
-
-- For the array we need to only add entries we care about, in this example lets use Name and CreatedDate, remember to create a new EntryType for this data so it can be searched on later, It should now look like something this:
-
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service6.png)
-
-- Now lets copy the last handler function (handle\_message\_ris) and change it like the steps before
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service7.png)
-
-- We will call this one (handle\_message\_s3)It should now look like this
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service8.png)
-
-- Now we just need to add the new s3 EntryType in in the last function
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service9.png)
-
-- Now add the new function to the (send\_sqs\_message)
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/new-service10.png)
-
-### Front-End - React
-
-
-
-
-## Testing
-
-### Python Lambdas
-
-- To manual test the functions a copy of each event is in ~/Back-End/lambdas/tests/
-    - __list_table.json__
-    - __receive\_sqs\_message.json__
-    - __end\_sqs\_message.json__
-- pytest is set up under test_lambda_functions.py
-
-```bash
-cd ~/Back-End/lambdas/tests
-pytest -v --disable-warnings
-```
+Example coming soon.
 
 ## Troubleshooting
 
@@ -242,18 +161,6 @@ pytest -v --disable-warnings
 
 - You can check all three lambdas logs easy in Cloudwatch Insights:
 ![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/sample-insights.png)
-
-Copy and paste query below for an overview:
-
-```bash
-fields @timestamp, @message
-| sort @timestamp desc
-| limit 20
-```
-Overview
-
-![](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/sample-insights2.png)
-
 
 ### Lambda Logs Error & Exceptions:
 

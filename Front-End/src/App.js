@@ -1,3 +1,6 @@
+// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 import React, { Component } from 'react';
 import { BrowserRouter, Route } from "react-router-dom";
 import Amplify, { Auth } from 'aws-amplify';

@@ -1,3 +1,6 @@
+// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
+
 import React, { Component } from "react";
 import { Navbar, Nav, Button, NavDropdown } from 'react-bootstrap';
 import { Auth } from 'aws-amplify';

@@ -1,5 +1,7 @@
-// In production, we register a service worker to serve assets from local cache.
+// Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-License-Identifier: MIT-0
 
+// In production, we register a service worker to serve assets from local cache.
 // This lets the app load faster on subsequent visits in production, and gives
 // it offline capabilities. However, it also means that developers (and users)
 // will only see deployed updates on the "N+1" visit to a page, since previously
