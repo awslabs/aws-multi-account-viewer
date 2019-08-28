@@ -96,7 +96,6 @@ def lambda_handler(event, context):
                 send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='s3-buckets', region='us-east-1')
-                send_sqs_message(accountNumber=i, function='org', region='us-east-1')
 
                 for b in list_of_regions:
 
@@ -109,17 +108,21 @@ def lambda_handler(event, context):
                     send_sqs_message(accountNumber=i, function='subnet', region=b)
                     send_sqs_message(accountNumber=i, function='ri', region=b)
 
+        # if function is organizations
         elif passed_function == 'org':
             send_sqs_message(accountNumber=source_account, function='org', region='us-east-1')
 
+        # If function is iam only use 1 region
         elif passed_function == 'iam-roles':
             for i in list_of_accounts:
                 send_sqs_message(accountNumber=i, function='iam-roles', region='us-east-1')
 
+        # If function is iam only use 1 region
         elif passed_function == 'iam-users':
             for i in list_of_accounts:
                 send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
-
+                
+        # If function is iam only use 1 region
         elif passed_function == 'iam-attached-policys':
             for i in list_of_accounts:
                 send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')

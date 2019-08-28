@@ -26,7 +26,7 @@ Parameters:
     Description: Region this template is running out of (Admin Account)
   Regions:
     Type: String
-    Default: 'ap-southeast-2,us-east-1,us-east-2'
+    Default: 'ap-southeast-2,us-east-1'
     Description: Regions you want watched, minimum us-east-1 for global resources like IAM.
   # US East (Ohio)	          us-east-2
   # US East (N. Virginia)	    us-east-1
@@ -118,6 +118,8 @@ Resources:
                   - lambda:Get*
                   - s3:Get*
                   - s3:List*
+                  - xray:Put*
+                  - xray:Get*
                 Resource: "*"
         - PolicyName: !Sub "${AWS::StackName}-LambdaSQS"
           PolicyDocument:
@@ -153,7 +155,7 @@ Resources:
       Handler: send_sqs_message.lambda_handler
       Runtime: python3.7
       MemorySize: 128
-      Timeout: 30
+      Timeout: 60
       Code:
         S3Bucket: !Ref LambdaBucketName
         S3Key: !Ref LambdaPackage
