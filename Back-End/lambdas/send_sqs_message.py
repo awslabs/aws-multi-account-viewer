@@ -95,7 +95,8 @@ def lambda_handler(event, context):
                 send_sqs_message(accountNumber=i, function='iam-roles', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')
-                send_sqs_message(accountNumber=i, function='s3-buckets', region='us-east-1') # mabey source_region?
+                send_sqs_message(accountNumber=i, function='s3-buckets', region='us-east-1')
+                send_sqs_message(accountNumber=i, function='org', region='us-east-1')
 
                 for b in list_of_regions:
 
@@ -108,46 +109,31 @@ def lambda_handler(event, context):
                     send_sqs_message(accountNumber=i, function='subnet', region=b)
                     send_sqs_message(accountNumber=i, function='ri', region=b)
 
+        elif passed_function == 'org':
+            send_sqs_message(accountNumber=source_account, function='org', region='us-east-1')
 
-                # # Do rest of calls in list of regions
-                # for b in list_of_regions:
-                #     print(f'sending region: {b}')
-                #     send_sqs_message(accountNumber=i, function=passed_function, region=b)
+        elif passed_function == 'iam-roles':
+            for i in list_of_accounts:
+                send_sqs_message(accountNumber=i, function='iam-roles', region='us-east-1')
 
-        #     # Send everything else to queue
-        #     for i in list_of_accounts:
+        elif passed_function == 'iam-users':
+            for i in list_of_accounts:
+                send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
 
-        #         # # IAM is only in us-east-1 so don't need to go cross regions
-        #         # print(f'sending account: {i}')
-        #         # send_sqs_message(accountNumber=i, function='iam-roles', region='us-east-1')
-        #         # send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
-        #         # send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')
-               
-        #        # Do rest of calls in list of regions
-        #         for b in list_of_regions:
-        #             print(f'sending account: {i} into region: {b}')
-        #             send_sqs_message(accountNumber=i, function='lambda', region=b)
-        #             send_sqs_message(accountNumber=i, function='ec2', region=b)
-        #             send_sqs_message(accountNumber=i, function='rds', region=b)
-        #             send_sqs_message(accountNumber=i, function='odcr', region=b)
-        #             send_sqs_message(accountNumber=i, function='vpc', region=b)
-        #             send_sqs_message(accountNumber=i, function='subnet', region=b)
-        #             send_sqs_message(accountNumber=i, function='ri', region=b)
-                    
+        elif passed_function == 'iam-attached-policys':
+            for i in list_of_accounts:
+                send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')
 
- 
+        # Else send the function to all accounts
+        else:
 
- 
-        # # Else send the function to all accounts
-        # else:
-        #     print(f'no function seems to have been passed... {passed_function}')
-        #     for i in list_of_accounts:
+            for i in list_of_accounts:
 
-        #         # Do rest of calls in list of regions
-        #         for b in list_of_regions:
-        #             print(f'sending region: {b}')
-        #             send_sqs_message(accountNumber=i, function=passed_function, region=b)
-
+                # Do rest of calls in list of regions
+                for b in list_of_regions:
+                    print(f'sending region: {b}')
+                    send_sqs_message(accountNumber=i, function=passed_function, region=b)
+        
         # Reply back
         return reply(message='sucessfully passed message to sqs', status_code=200)
 

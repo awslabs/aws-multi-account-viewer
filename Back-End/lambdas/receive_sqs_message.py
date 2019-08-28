@@ -35,7 +35,6 @@ except Exception as e:
 # Try connect Clients
 try:
     client_sqs = boto3.client('sqs', region_name=source_region)
-    # client_s3 = boto3.client('s3', region_name=source_region)
     dynamodb = boto3.resource('dynamodb', region_name=source_region)
     table = dynamodb.Table(table_name_multi)
 except Exception as e:
@@ -604,7 +603,7 @@ def dynamo_delete_item(dynamodb_item):
         print(f"FAILED ON ID: {dynamodb_item}")
         print("Unexpected error: %s" % e)
 
-# delete all items in table for changes
+# delete all items in table  | function not used |
 def dynamo_delete_all_items():
     scan = table.scan(
         ProjectionExpression='#k',
@@ -680,9 +679,9 @@ def handle_message_lambda(account_number, region):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_lambda_list = get_current_table(account_number=account_number, entry_type='lambda', region=region)
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_lambda_list)
-    # pop_dynamo = get_current_table(account_number=account_number, entry_type='lambda', region=region)
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=lambda_list, dynamo_list=dynamo_lambda_list, pop_list=pop_dynamo)
@@ -701,9 +700,9 @@ def handle_message_rds(account_number, region):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_rds_list = get_current_table(account_number=account_number, entry_type='rds', region=region)
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_rds_list)
-    # pop_dynamo = get_current_table(account_number=account_number, entry_type='rds', region=region)
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=rds_list, dynamo_list=dynamo_rds_list, pop_list=pop_dynamo)
@@ -722,9 +721,9 @@ def handle_message_ec2(account_number, region):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_ec2_list = get_current_table(account_number=account_number, entry_type='ec2', region=region)
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_ec2_list)
-    #pop_dynamo = get_current_table(account_number=account_number, entry_type='ec2', region=region)
 
     #remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=ec2_list, dynamo_list=dynamo_ec2_list, pop_list=pop_dynamo)
@@ -743,9 +742,9 @@ def handle_message_iam_role(account_number):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_roles = get_current_table(account_number=account_number, entry_type='iam-roles', region='us-east-1')
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_roles)
-    #pop_dynamo = get_current_table(account_number=account_number, entry_type='iam-roles', region='us-east-1')
 
     # Check and compare unique entry for whats currently in boto3 iam list and whats in dynamodb
     compare_lists_and_update(boto_list=roles, dynamo_list=dynamo_roles, pop_list=pop_dynamo)
@@ -764,9 +763,9 @@ def handle_message_iam_users(account_number):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_users = get_current_table(account_number=account_number, entry_type='iam-users', region='us-east-1')
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_users)
-    #pop_dynamo = get_current_table(account_number=account_number, entry_type='iam-users', region='us-east-1')
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=users, dynamo_list=dynamo_users, pop_list=pop_dynamo)
@@ -785,9 +784,9 @@ def handle_message_iam_attached_policys(account_number):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_policys = get_current_table(account_number=account_number, entry_type='iam-attached-policys', region='us-east-1')
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_policys)
-    #pop_dynamo = get_current_table(account_number=account_number, entry_type='iam-attached-policys', region='us-east-1')
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=current_policys, dynamo_list=dynamo_policys, pop_list=pop_dynamo)
@@ -806,9 +805,9 @@ def handle_message_odcr(account_number, region):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_odcr_list = get_current_table(account_number=account_number, entry_type='odcr', region=region)
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_odcr_list)
-    #pop_dynamo = get_current_table(account_number=account_number, entry_type='odcr', region=region)
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=odcr_list, dynamo_list=dynamo_odcr_list, pop_list=pop_dynamo)
@@ -832,9 +831,6 @@ def handle_message_organizations(account_number):
 
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_org_list)
-    # pop_dynamo = table.scan(
-    #     FilterExpression=Attr("EntryType").eq("org")
-    #     )['Items']
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=org_list, dynamo_list=dynamo_org_list, pop_list=pop_dynamo)
@@ -895,9 +891,9 @@ def handle_message_ris(account_number, region):
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_ri_list = get_current_table(account_number=account_number, entry_type='ri', region=region)
+
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_ri_list)
-    # pop_dynamo = get_current_table(account_number=account_number, entry_type='ri', region=region)
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=ri_list, dynamo_list=dynamo_ri_list, pop_list=pop_dynamo)
@@ -914,11 +910,7 @@ def handle_message_s3_buckets(account_number):
     # get current s3 buckets
     s3_list = get_all_s3_buckets(account_number=account_number)
 
-    # This entry can't use normal scan function because organizations calls are already multi account
-    # dynamo_s3_list = table.scan(
-    #     FilterExpression=Attr("EntryType").eq("s3-buckets") & Attr("AccountNumber").eq(account_number) & Attr("Region").eq(source_account)
-    #     )['Items']
-
+    # Get current data sitting in Dynamo and remove inactive entries
     dynamo_s3_list = get_current_table(account_number=account_number, entry_type='s3-buckets', region='us-east-1')
 
     # Deep copy instead of double dynamo read

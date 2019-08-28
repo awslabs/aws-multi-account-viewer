@@ -89,13 +89,13 @@ aws s3 mb s3://your-unique-bucket-name --region ap-southeast-2
 ```
 - Package up all the lambdas into one zip file (e.g __functions.zip__): see example below or doco [here](https://docs.aws.amazon.com/lambda/latest/dg/lambda-python-how-to-create-deployment-package.html) 
 
-- The only external python modules users are: pytest & boto3
+- The only external python modules: boto3
 
 ```bash
 cd ~/Back-End/lambdas
 python3.7 -m venv .venv
 source .venv/bin/activate
-cd package
+cd build
 pip install -r ../requirements.txt --target .
 zip -r9 ../functions.zip .
 deactivate
