@@ -128,6 +128,7 @@ Resources:
                   - s3:List*
                   - xray:Put*
                   - xray:Get*
+                  - lightsail:Get*
                 Resource: "*"
         - PolicyName: !Sub "${AWS::StackName}-LambdaSQS"
           PolicyDocument:

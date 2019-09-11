@@ -322,6 +322,37 @@ def get_all_odcr(account_number, region):
 
     return var_list
 
+# Get Lightsail Instances Function
+def get_all_lightsail(account_number, region):
+
+    # Init
+    var_list = []
+
+    # Use boto3 on source account
+    client_lightsail = create_boto_client(account_number, region, 'lightsail')
+
+    # Page all reservations
+    paginator = client_lightsail.get_paginator('get_instances')
+
+    for page in paginator.paginate():
+        for i in page['instances']:
+            var_list.append(
+                {
+                'EntryType': 'lightsail',
+                'AccountNumber': str(account_number),
+                'Region': str(region),
+                'AvailabilityZone': i['location']['availabilityZone'],
+                'Name': i['name'],
+                'CreateDate': str(i['createdAt']),
+                'Blueprint': str(i['blueprintName']),
+                'RAM in GB': str(i['hardware']['ramSizeInGb']),
+                'vCPU': str(i['hardware']['cpuCount']),
+                'SSD in GB': i['hardware']['disks'][0]['sizeInGb'],
+                'Public IP': i['publicIpAddress'],
+                })
+
+    return var_list
+
 # Get Organizations Function
 def get_organizations(account_number, region):
 
@@ -738,6 +769,27 @@ def handle_message_odcr(account_number, region):
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(boto_list=odcr_list, dynamo_list=dynamo_odcr_list, pop_list=pop_dynamo)
 
+# Logic for Lightsail Instances
+def handle_message_lightsail(account_number, region):
+    print('printing event....')
+
+    # init
+    lightsail_list = []
+    dynamo_lightsail_list = []
+    pop_dynamo = []
+
+    # get current lightsail
+    lightsail_list = get_all_lightsail(account_number=account_number, region=region)
+
+    # Get current data sitting in Dynamo and remove inactive entries
+    dynamo_lightsail_list = get_current_table(account_number=account_number, entry_type='lightsail', region=region)
+
+    # Deep copy instead of double dynamo read
+    pop_dynamo = copy.deepcopy(dynamo_lightsail_list)
+
+    # remove Id key from dynamodb item and check if value has changed.
+    compare_lists_and_update(boto_list=lightsail_list, dynamo_list=dynamo_lightsail_list, pop_list=pop_dynamo)
+
 # Logic for Organizations
 def handle_message_organizations(account_number, region):
     print('printing event....')
@@ -883,6 +935,8 @@ def lambda_handler(event, context):
             handle_message_iam_attached_policys(account_number, region)
         if function == 'odcr':
             handle_message_odcr(account_number, region)
+        if function == 'lightsail':
+            handle_message_lightsail(account_number, region)
         if function == 'org':
             handle_message_organizations(account_number, region)
         if function == 'vpc':

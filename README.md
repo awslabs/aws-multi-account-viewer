@@ -16,6 +16,7 @@ some of the current examples are:
 - All IAM Users, Roles, Policy’s
 - All VPCs, Subnets
 - All S3 Buckets
+- All Lightsail Instances
 
 ## Demo
 

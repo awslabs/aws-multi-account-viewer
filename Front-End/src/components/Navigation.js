@@ -35,9 +35,10 @@ export class Navigation extends Component {
           <Navbar.Collapse id="responsive-navbar-nav">
             <Nav className="mr-auto">
             <NavDropdown title="EC2" id="collasible-nav-dropdown">
-                <NavDropdown.Item href="/allec2">All EC2 Instances</NavDropdown.Item>
+                <NavDropdown.Item href="/allec2">View All EC2 Instances</NavDropdown.Item>
                 <NavDropdown.Item href="/allris">View All RIs</NavDropdown.Item>
                 <NavDropdown.Item href="/allodcr">View All ODCRs</NavDropdown.Item>
+                <NavDropdown.Item href="/alllightsail">View All Lightsail Instances</NavDropdown.Item>
               </NavDropdown>
 
             <NavDropdown title="Lambda" id="collasible-nav-dropdown">
