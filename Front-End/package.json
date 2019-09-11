@@ -7,6 +7,7 @@
     "aws-amplify-react": "^2.3.3",
     "bootstrap": "^4.3.1",
     "datatables.net": "^1.10.19",
+    "fsevents": "^2.0.7",
     "jquery": "^3.3.1",
     "react": "^16.8.6",
     "react-bootstrap": "^1.0.0-beta.8",
@@ -23,6 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
+    "deploy": "aws s3 sync build/ s3://your-bucket-name",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

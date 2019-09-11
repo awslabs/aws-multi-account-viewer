@@ -21,6 +21,7 @@ import AllRoles from './pages/AllRoles';
 import AllAttachedPolicys from './pages/AllAttachedPolicys';
 import AllLambda from './pages/AllLambda';
 import AllS3 from './pages/AllS3';
+import AllLightsail from './pages/AllLightsail';
 import Table from './pages/Table';
 import './index.css';
 
@@ -31,15 +32,15 @@ Amplify.configure({
     // REQUIRED - Amazon Cognito Region
     region: 'ap-southeast-2',
     // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: 'ap-southeast-2_Crbth5Cvf',
+    userPoolId: 'ap-southeast-2_UsrPlId',
     // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
-    userPoolWebClientId: '6jbod2ka59no581t6da0prrrlt'
+    userPoolWebClientId: '123usrPoolWebClientID456'
   },
   API: {
     endpoints: [
       {
         name: "MyAPIGatewayAPI",
-        endpoint: "https://bq7rymk50l.execute-api.ap-southeast-2.amazonaws.com/prod",
+        endpoint: "https://abcd1234.execute-api.ap-southeast-2.amazonaws.com/prod",
         region: 'ap-southeast-2',
         custom_header: async () => {
           return { Authorization: (await Auth.currentSession()).idToken.jwtToken };
@@ -71,6 +72,7 @@ class App extends Component {
           <Route path="/allattachedpolicys" component={AllAttachedPolicys} />
           <Route path="/allris" component={AllRis} />
           <Route path="/alls3" component={AllS3} />
+          <Route path="/alllightsail" component={AllLightsail} />
         </div>
       </BrowserRouter>
     );

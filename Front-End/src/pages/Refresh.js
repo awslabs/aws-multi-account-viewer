@@ -73,6 +73,7 @@ class Refresh extends React.Component {
                                 <option value="org">Organizations</option>
                                 <option value="s3-buckets">S3 Buckets</option>
                                 <option value="ri">EC2 Reservations</option>
+                                <option value="lightsail">Lightsail</option>
                             </Form.Control>
                         </Form.Group>
 
