@@ -131,7 +131,9 @@ yarn start
 ![](images/login-complete.png)
 
 - Log in with the user you created earlier.
-- You now have a local version up and running, you could now safely host as a public s3 bucket. (not covered in this project but you can see examples online on how to set it up: [S3-Public-Website](https://docs.aws.amazon.com/AmazonS3/latest/dev/HostingWebsiteOnS3Setup.html))
+- You now have a local version up and running, you could now safely host as a public s3 bucket. 
+(not covered in this project but you can see examples online on how to set it up: [S3-Public-Website](https://docs.aws.amazon.com/AmazonS3/latest/dev/HostingWebsiteOnS3Setup.html))
+- A really good article on setting React up with S3 by Antoine Sauvage: [Here](https://medium.com/ovrsea/deploy-automatically-a-react-app-on-amazon-s3-iam-within-minutes-da6cb0096d55)
 
 
 ## Adding New Services
@@ -147,6 +149,11 @@ To add a new services, you need to updating 2 sqs lambdas and creating a new pag
 
 - Check SQS to make sure the messages are going through to lambda
 - If there’s lots of messages in the queue then there’s an issue with the lambda or DynamoDB is throttling the requests.
+
+### Site breaks when hosted on s3?
+
+- There's a good guide above on how to host React on S3, most common gotcha is error document:
+![](images/s3-sample.png)
 
 ### Lambda Logs Overview?
 
