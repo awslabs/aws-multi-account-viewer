@@ -7,7 +7,6 @@
     "aws-amplify-react": "^2.3.3",
     "bootstrap": "^4.3.1",
     "datatables.net": "^1.10.19",
-    "fsevents": "^2.0.7",
     "jquery": "^3.3.1",
     "react": "^16.8.6",
     "react-bootstrap": "^1.0.0-beta.8",
@@ -19,7 +18,7 @@
     "react-bootstrap-table2-toolkit": "^1.4.1",
     "react-dom": "^16.8.6",
     "react-router-dom": "4.1.2",
-    "react-scripts": "2.1.8"
+    "react-scripts": "^3.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
