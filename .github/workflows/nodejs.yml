@@ -5,7 +5,7 @@ on: [push,pull_request]
 jobs:
       
   test:
-    runs-on: macOS-latest
+    runs-on: [macOS-latest,ubuntu-latest]
     steps:
     - name: Checkout
       uses: actions/checkout@master
@@ -19,11 +19,15 @@ jobs:
       working-directory: ./Front-End
       run: | 
         npm install
+      env:
+        CI: true
         
     - name: Build FrontEnd
       working-directory: ./Front-End
       run: |
         npm run build --if-present
+      env:
+        CI: true
 
 # jobs:
 #   build:
