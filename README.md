@@ -39,7 +39,7 @@ some of the current examples are:
 
 - [Python 3.7](https://www.python.org/downloads/)
 - [Node.js 8.10+](https://nodejs.org/en/)
-- [Yarn](https://yarnpkg.com/en/)
+- [Yarn](https://yarnpkg.com/en/) or [NPM](https://www.npmjs.com/)
 - At least 2 AWS accounts.
 
 ## Install Overview
