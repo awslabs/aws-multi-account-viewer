@@ -5,7 +5,7 @@ on: [push,pull_request]
 jobs:
       
   test:
-    runs-on: [macOS-latest,ubuntu-latest]
+    runs-on: ubuntu-latest
     steps:
     - name: Checkout
       uses: actions/checkout@master
