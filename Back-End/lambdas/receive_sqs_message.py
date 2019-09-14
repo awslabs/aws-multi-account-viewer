@@ -11,10 +11,7 @@ import copy
 import logging
 from ast import literal_eval
 from botocore.exceptions import ClientError
-from boto3.dynamodb.conditions import Attr
-
-
-#TODO EBS unattached Volumes
+from boto3.dynamodb.conditions import Attr, Key
 
 # Helper class for Dynamo
 class DecimalEncoder(json.JSONEncoder):
@@ -187,6 +184,13 @@ def get_all_ec2(account_number, region):
             else:
                 iam_role = ' '
 
+            # Get vCPU count
+            vcpu_core = i['Instances'][0]['CpuOptions']['CoreCount']
+            vcpu_thread = i['Instances'][0]['CpuOptions']['ThreadsPerCore']
+            
+            # Cores x thread = vCPU count
+            vCPU = int(vcpu_core) * int(vcpu_thread)
+
             var_list.append(
                 {
                     'EntryType': 'ec2',
@@ -194,6 +198,7 @@ def get_all_ec2(account_number, region):
                     'State': i['Instances'][0]['State']['Name'],
                     'AccountNumber': str(account_number),
                     'Region': str(region),
+                    'vCPU': int(vCPU),
                     'KeyName': i['Instances'][0].get("KeyName", " "),
                     'RoleName': str(iam_role),
                     'PrivateIpAddress': i['Instances'][0].get("PrivateIpAddress", " "),
@@ -505,14 +510,18 @@ def get_current_table(account_number, entry_type, region):
 
     try:
         # Scan dynamo for all data
-        response = table.scan(
-            FilterExpression=Attr("AccountNumber").eq(account_number) & Attr("EntryType").eq(str(entry_type)) & Attr("Region").eq(str(region)))
+        response = table.query(
+            IndexName='EntryType-index',
+            KeyConditionExpression=Key("EntryType").eq(entry_type),
+            FilterExpression=Attr("AccountNumber").eq(account_number) &
+            Attr("Region").eq(region)
+            )
 
-        print(f"items from db scan: {response['Items']}")
+        print(f"items from db query: {response['Items']}")
         return response['Items']
 
     except ClientError as e:
-        print('failed to scan dynamodb table...')
+        print('failed to query dynamodb table...')
         print(e)
 
 # DynamoDB Get Item

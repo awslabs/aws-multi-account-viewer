@@ -5,7 +5,7 @@ import json
 import os
 import boto3
 import decimal
-from boto3.dynamodb.conditions import Attr
+from boto3.dynamodb.conditions import Attr, Key
 from botocore.exceptions import ClientError
 
 # Helper class for Dynamo
@@ -45,18 +45,19 @@ def reply(message, status_code):
     }
 
 # Scan DynamoDB
-def scan_table(entry_type):
+def query_table(entry_type):
 
     try:
-        # Scan dynamo for all data
-        current_items = table.scan(
-            FilterExpression=Attr("EntryType").eq(entry_type)
+        # Scan dynamo for all Attribute data
+        current_items = table.query(
+            IndexName="EntryType-index",
+            KeyConditionExpression=Key("EntryType").eq(entry_type)
         )
 
         return current_items
 
     except ClientError as e:
-        print('failed to scan dynamodb table...')
+        print("failed to scan dynamodb table...")
         print(e)
 
 # Default lambda
@@ -68,7 +69,7 @@ def lambda_handler(event, context):
         # variables
         search_key = event['queryStringParameters']['scan']
         print(f'variable passed: {search_key}')
-        result = scan_table(entry_type=search_key)
+        result = query_table(entry_type=search_key)
         print(f'result: {result}')
         
         # create a response

@@ -64,6 +64,10 @@ export default class AllEC2 extends React.Component {
                 text: 'Region',
                 sort: true
             },{
+                dataField: 'vCPU',
+                text: 'vCPU',
+                sort: true
+            }, {
                 dataField: 'InstanceId',
                 text: 'InstanceId',
                 sort: true
