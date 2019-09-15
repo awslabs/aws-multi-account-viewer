@@ -1,4 +1,4 @@
-name: Node CI Front-End
+name: Front-End Build
 
 on: [push,pull_request]
 
