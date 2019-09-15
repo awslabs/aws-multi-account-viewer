@@ -2,7 +2,6 @@
 <img src="images/frontpage.png"></a>
 </h1>
 
-## Overview
 ![](https://github.com/awslabs/aws-multi-account-viewer/workflows/Front-End%20Build/badge.svg)
 
 Serverless app designed for any customer with two or more accounts to view resources across accounts/regions in simple single pane of glass website. It's split into 2 customizable parts:
