@@ -96,6 +96,9 @@ def lambda_handler(event, context):
         # if cron, send all messages to all accounts
         if passed_function == 'cron':
 
+            # Organizations only needs source_account
+            send_sqs_message(accountNumber=source_account, function='org', region='us-east-1')
+
             for i in list_of_accounts:
 
                 # Global API, don't hit each region
@@ -103,7 +106,7 @@ def lambda_handler(event, context):
                 send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')
                 send_sqs_message(accountNumber=i, function='s3-buckets', region='us-east-1')
-
+                
                 for b in list_of_regions:
 
                     print(f'sending account: {i} into region: {b}')

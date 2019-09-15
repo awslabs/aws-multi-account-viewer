@@ -811,10 +811,11 @@ def handle_message_organizations(account_number, region):
     # get current Org
     org_list = get_organizations(account_number=account_number, region=region)
 
-    # This entry can't use normal scan function because organizations calls are already multi account
-    dynamo_org_list = table.scan(
-        FilterExpression=Attr("EntryType").eq("org")
-        )['Items']
+    # Need Custom Query for Organizations, don't include account number
+    dynamo_org_list = table.query(
+            IndexName='EntryType-index',
+            KeyConditionExpression=Key('EntryType').eq('org'),
+            FilterExpression=Attr('Region').eq('us-east-1'))['Items']
 
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_org_list)
