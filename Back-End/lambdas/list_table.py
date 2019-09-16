@@ -64,7 +64,7 @@ def query_table(entry_type):
         return current_items
 
     except ClientError as e:
-        print("failed to scan dynamodb table...")
+        print("failed to query dynamodb table...")
         print(e)
 
 
