@@ -12,7 +12,7 @@ from botocore.exceptions import ClientError
 # Helper class for Dynamo
 class DecimalEncoder(json.JSONEncoder):
 
-    def default(self, objs):  # pylint: disable=E0202
+    def default(self, obj):  # pylint: disable=E0202
         if isinstance(obj, decimal.Decimal):
             return int(obj)
         return super(DecimalEncoder, self).default(obj)
