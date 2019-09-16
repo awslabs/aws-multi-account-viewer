@@ -5,18 +5,22 @@ import json
 import os
 import boto3
 import decimal
-from boto3.dynamodb.conditions import Attr, Key
+from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
+
 
 # Helper class for Dynamo
 class DecimalEncoder(json.JSONEncoder):
-    def default(self, obj): # pylint: disable=E0202
+
+    def default(self, obj):  # pylint: disable=E0202
         if isinstance(obj, decimal.Decimal):
             return int(obj)
         return super(DecimalEncoder, self).default(obj)
 
+
 # Try grab OS environment details
 try:
+
     source_region = os.environ['ENV_SOURCE_REGION']
     table_name_multi = os.environ['ENV_TABLE_NAME_MULTI']
 except Exception as e:
@@ -24,11 +28,12 @@ except Exception as e:
 
 # Try Assign dynamo table
 try:
+
     dynamodb = boto3.resource('dynamodb', region_name=source_region)
     table = dynamodb.Table(table_name_multi)
 except Exception as e:
     print(f"failed to speak to dynamo: {e}")
-    
+
 
 # Reply Message
 def reply(message, status_code):
@@ -44,10 +49,12 @@ def reply(message, status_code):
         },
     }
 
+
 # Scan DynamoDB
 def query_table(entry_type):
 
     try:
+
         # Scan dynamo for all Attribute data
         current_items = table.query(
             IndexName="EntryType-index",
@@ -60,10 +67,12 @@ def query_table(entry_type):
         print("failed to scan dynamodb table...")
         print(e)
 
+
 # Default lambda
 def lambda_handler(event, context):
 
     try:
+
         print(json.dumps(event))
 
         # variables
@@ -71,10 +80,9 @@ def lambda_handler(event, context):
         print(f'variable passed: {search_key}')
         result = query_table(entry_type=search_key)
         print(f'result: {result}')
-        
+
         # create a response
         return reply(message=result['Items'], status_code=200)
-        
 
     except ClientError as e:
         print("Unexpected error: %s" % e)
