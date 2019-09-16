@@ -7,6 +7,8 @@ import boto3
 import decimal
 from boto3.dynamodb.conditions import Key
 from botocore.exceptions import ClientError
+
+
 # Helper class for Dynamo
 class DecimalEncoder(json.JSONEncoder):
 
