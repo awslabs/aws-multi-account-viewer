@@ -1,14 +1,6 @@
 name: Front-End Build
 
-on:
-  push:
-    paths:
-      # '*' matches any character except '/'
-      - '*'
-      - '!/Back-End/*'
-      - '!/Back-End/*/*'
-      - '!/Back-End/*/*/*'
-      - '!/Back-End/*/*/*/*'
+on: [push, pull_request]
 
 jobs:
       
