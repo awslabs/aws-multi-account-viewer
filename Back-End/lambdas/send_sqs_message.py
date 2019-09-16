@@ -7,15 +7,18 @@ import os
 import decimal
 from botocore.exceptions import ClientError
 
+
 # Helper class for Dynamo
 class DecimalEncoder(json.JSONEncoder):
-    def default(self, obj): # pylint: disable=E0202
+    def default(self, obj):  # pylint: disable=E0202
         if isinstance(obj, decimal.Decimal):
             return int(obj)
         return super(DecimalEncoder, self).default(obj)
 
+
 # Try grab OS environment details
 try:
+
     accNumbers = os.environ['ENV_ACCOUNTS']
     source_account = os.environ['ENV_SOURCE_ACCOUNT']
     source_region = os.environ['ENV_SOURCE_REGION']
@@ -25,11 +28,13 @@ try:
 except Exception as e:
     print(f"No os.environment in lambda.... {e}")
 
+
 # Try connect sqs
 try:
     sqs = boto3.client('sqs', region_name=source_region)
 except Exception as e:
     print(f"cant connect to sqs.... {e}")
+
 
 def reply(message, status_code):
 
@@ -43,6 +48,7 @@ def reply(message, status_code):
             'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
         },
     }
+
 
 # Send message to SQS queue
 def send_sqs_message(accountNumber, function, region):
@@ -72,6 +78,7 @@ def send_sqs_message(accountNumber, function, region):
     return response
 
 
+# Lambda Handler
 def lambda_handler(event, context):
 
     try:
@@ -91,42 +98,54 @@ def lambda_handler(event, context):
             list_of_regions.append(b)
 
         # Global API that don't need to hit every region, e.g IAM, S3 etc
-        global_api = ['iam-roles', 'iam-users', 'iam-attached-policys', 's3-buckets']
+        global_api = ['iam-roles', 'iam-users',
+                      'iam-attached-policys', 's3-buckets']
 
         # if cron, send all messages to all accounts
         if passed_function == 'cron':
 
             # Organizations only needs source_account
-            send_sqs_message(accountNumber=source_account, function='org', region='us-east-1')
+            send_sqs_message(accountNumber=source_account,
+                             function='org', region='us-east-1')
 
             for i in list_of_accounts:
 
                 # Global API, don't hit each region
-                send_sqs_message(accountNumber=i, function='iam-roles', region='us-east-1')
-                send_sqs_message(accountNumber=i, function='iam-users', region='us-east-1')
-                send_sqs_message(accountNumber=i, function='iam-attached-policys', region='us-east-1')
-                send_sqs_message(accountNumber=i, function='s3-buckets', region='us-east-1')
-                
+                send_sqs_message(
+                    accountNumber=i, function='iam-roles', region='us-east-1')
+                send_sqs_message(
+                    accountNumber=i, function='iam-users', region='us-east-1')
+                send_sqs_message(
+                    accountNumber=i, function='iam-attached-policys', region='us-east-1')
+                send_sqs_message(
+                    accountNumber=i, function='s3-buckets', region='us-east-1')
+
                 for b in list_of_regions:
 
                     print(f'sending account: {i} into region: {b}')
-                    send_sqs_message(accountNumber=i, function='lambda', region=b)
+                    send_sqs_message(
+                        accountNumber=i, function='lambda', region=b)
                     send_sqs_message(accountNumber=i, function='ec2', region=b)
                     send_sqs_message(accountNumber=i, function='rds', region=b)
-                    send_sqs_message(accountNumber=i, function='odcr', region=b)
-                    send_sqs_message(accountNumber=i, function='lightsail', region=b)
+                    send_sqs_message(
+                        accountNumber=i, function='odcr', region=b)
+                    send_sqs_message(
+                        accountNumber=i, function='lightsail', region=b)
                     send_sqs_message(accountNumber=i, function='vpc', region=b)
-                    send_sqs_message(accountNumber=i, function='subnet', region=b)
+                    send_sqs_message(
+                        accountNumber=i, function='subnet', region=b)
                     send_sqs_message(accountNumber=i, function='ri', region=b)
 
         # if function is organizations
         elif passed_function == 'org':
-            send_sqs_message(accountNumber=source_account, function='org', region='us-east-1')
+            send_sqs_message(accountNumber=source_account,
+                             function='org', region='us-east-1')
 
         # if function is global and doesn't need each region
         elif passed_function in global_api:
             for i in list_of_accounts:
-                send_sqs_message(accountNumber=i, function=passed_function, region='us-east-1')
+                send_sqs_message(
+                    accountNumber=i, function=passed_function, region='us-east-1')
 
         # Else send the function to all accounts
         else:
@@ -136,8 +155,9 @@ def lambda_handler(event, context):
                 # Do rest of calls in list of regions
                 for b in list_of_regions:
                     print(f'sending region: {b}')
-                    send_sqs_message(accountNumber=i, function=passed_function, region=b)
-        
+                    send_sqs_message(
+                        accountNumber=i, function=passed_function, region=b)
+
         # Reply back
         return reply(message='sucessfully passed message to sqs', status_code=200)
 
