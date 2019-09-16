@@ -6,6 +6,9 @@ on:
     paths:
       # '*' matches any character except '/'
       - 'Back-End/*'
+      - 'Back-End/*/*'
+      - 'Back-End/*/*/*'
+      - 'Back-End/*/*/*/*'
 
 jobs:
   build:
