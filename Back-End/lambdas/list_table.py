@@ -18,7 +18,7 @@ class DecimalEncoder(json.JSONEncoder):
         return super(DecimalEncoder, self).default(obj)
 
 
-# Try grab OS environment details
+# Try grab OS environment details from event
 try:
 
     source_region = os.environ['ENV_SOURCE_REGION']

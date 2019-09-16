@@ -4,10 +4,11 @@ on:
   push:
     paths:
       # '*' matches any character except '/'
-      - 'Front-End/*'
-      - 'Front-End/*/*'
-      - 'Front-End/*/*/*'
-      - 'Front-End/*/*/*/*'
+      - '*'
+      - '!/Back-End/*'
+      - '!/Back-End/*/*'
+      - '!/Back-End/*/*/*'
+      - '!/Back-End/*/*/*/*'
 
 jobs:
       
