@@ -1,6 +1,10 @@
 name: Front-End Build
 
-on: [push,pull_request]
+on:
+  push:
+    paths:
+      # '*' matches any character except '/'
+      - 'Front-End/*'
 
 jobs:
       
