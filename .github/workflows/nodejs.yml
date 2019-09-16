@@ -2,9 +2,9 @@ name: Front-End Build
 
 on: [push, pull_request]
 
-jobs:
-      
+jobs:  
   test:
+    name: Front-End Test
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
