@@ -10,13 +10,15 @@ Serverless app designed for any customer with two or more accounts to view resou
 - Back-End (CloudFormation templates and Python Lambdas)
 - Front-End (React with Amplify)
 
-some of the current examples are:
+Current working examples are:
 
 - All AWS Accounts in Organizations
 - All EC2, Lambdas, ODCR, EC2 Reserved Instances, RDS
 - All IAM Users, Roles, Policy’s
 - All VPCs, Subnets
 - All S3 Buckets
+- All IP's (in progress)
+- All EBS (in progress)
 
 ## Demo
 
