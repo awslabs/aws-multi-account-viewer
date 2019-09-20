@@ -69,6 +69,7 @@ class Refresh extends React.Component {
                                 <option value="iam-roles">IAM Roles</option>
                                 <option value="iam-attached-policys">IAM Attached Policys</option>
                                 <option value="vpc">VPC</option>
+                                <option value="network-interfaces">Network Interfaces</option>
                                 <option value="subnet">Subnets</option>
                                 <option value="org">Organizations</option>
                                 <option value="s3-buckets">S3 Buckets</option>

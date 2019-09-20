@@ -17,7 +17,7 @@ Current working examples are:
 - All IAM Users, Roles, Policy’s
 - All VPCs, Subnets
 - All S3 Buckets
-- All IP's (in progress)
+- All Private and Public IP's
 - All EBS (in progress)
 
 ## Demo
