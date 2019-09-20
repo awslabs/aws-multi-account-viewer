@@ -429,6 +429,38 @@ def get_all_vpc(account_number, region):
     return var_list
 
 
+# Get All Network Interfaces Function
+def get_all_network_interfaces(account_number, region):
+
+    # Init
+    var_list = []
+
+    # Use boto3 on source account
+    client_ec2 = create_boto_client(account_number, region, 'ec2')
+
+    # Page all vpc's
+    paginator = client_ec2.get_paginator('describe_network_interfaces')
+
+    for page in paginator.paginate():
+        for i in page['NetworkInterfaces']:
+
+            var_list.append(
+                {
+                    'EntryType': 'network-interfaces',
+                    'PrivateIpAddress': str(i.get("PrivateIpAddress", " ")),
+                    'PublicIp': str(i.get('Association', {}).get('PublicIp', " ")),
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'Status': str(i.get("Status", " ")),
+                    'AttStatus': str(i.get('Attachment', {}).get('Status', " ")),
+                    'InterfaceType': str(i.get("InterfaceType", " ")),
+                    'NetworkInterfaceId': str(i.get("NetworkInterfaceId", " ")),
+                    'Description': str(i.get("Description", " "))
+                })
+
+    return var_list
+
+
 # Get Subnet Function
 def get_all_subnets(account_number, region):
 
@@ -895,6 +927,30 @@ def handle_message_vpc(account_number, region):
         boto_list=vpc_list, dynamo_list=dynamo_vpc_list, pop_list=pop_dynamo)
 
 
+# Logic for Network Interfaces
+def handle_message_network_interfaces(account_number, region):
+    print('printing event....')
+
+    # init
+    network_interfaces_list = []
+    dynamo_network_interfaces_list = []
+    pop_dynamo = []
+
+    # get current network interfaces
+    network_interfaces_list = get_all_network_interfaces(account_number=account_number, region=region)
+
+    # Get current data sitting in Dynamo and remove inactive entries
+    dynamo_network_interfaces_list = get_current_table(
+        account_number=account_number, entry_type='network-interfaces', region=region)
+    # Deep copy instead of double dynamo read
+    pop_dynamo = copy.deepcopy(dynamo_network_interfaces_list)
+    # pop_dynamo = get_current_table(account_number=account_number, entry_type='vpc', region=region)
+
+    # remove Id key from dynamodb item and check if value has changed.
+    compare_lists_and_update(
+        boto_list=network_interfaces_list, dynamo_list=dynamo_network_interfaces_list, pop_list=pop_dynamo)
+
+
 # Logic for Subnets
 def handle_message_subnets(account_number, region):
     print('printing event....')
@@ -1010,6 +1066,8 @@ def lambda_handler(event, context):
             handle_message_organizations(account_number, region)
         if function == 'vpc':
             handle_message_vpc(account_number, region)
+        if function == 'network-interfaces':
+            handle_message_network_interfaces(account_number, region)
         if function == 'subnet':
             handle_message_subnets(account_number, region)
         if function == 'ri':

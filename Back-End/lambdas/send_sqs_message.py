@@ -133,6 +133,8 @@ def lambda_handler(event, context):
                         accountNumber=i, function='lightsail', region=b)
                     send_sqs_message(accountNumber=i, function='vpc', region=b)
                     send_sqs_message(
+                        accountNumber=i, function='network-interfaces', region=b)
+                    send_sqs_message(
                         accountNumber=i, function='subnet', region=b)
                     send_sqs_message(accountNumber=i, function='ri', region=b)
 

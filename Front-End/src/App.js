@@ -14,6 +14,7 @@ import AllODCR from './pages/AllODCR';
 import AllRis from './pages/AllRis';
 import Organizations from './pages/Organizations';
 import AllVpcs from './pages/AllVpcs';
+import AllNetworkInterfaces from './pages/AllNetworkInterfaces';
 import AllSubnets from './pages/AllSubnets';
 import Refresh from './pages/Refresh';
 import AllUsers from './pages/AllUsers';
@@ -65,6 +66,7 @@ class App extends Component {
           <Route path="/organizations" component={Organizations} />
           <Route path="/allrds" component={AllRDS} />
           <Route path="/allvpcs" component={AllVpcs} />
+          <Route path="/allnetworkinterfaces" component={AllNetworkInterfaces} />
           <Route path="/allsubnets" component={AllSubnets} />
           <Route path="/refresh" component={Refresh} />
           <Route path="/allusers" component={AllUsers} />

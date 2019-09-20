@@ -58,6 +58,7 @@ export class Navigation extends Component {
               <NavDropdown title="VPC" id="collasible-nav-dropdown">
                 <NavDropdown.Item href="/Allvpcs">All VPCs</NavDropdown.Item>
                 <NavDropdown.Item href="/Allsubnets">All Subnets</NavDropdown.Item>
+                <NavDropdown.Item href="/AllNetworkInterfaces">All All Network Interfaces</NavDropdown.Item>
               </NavDropdown>
 
               <NavDropdown title="Organizations" id="collasible-nav-dropdown">
