@@ -57,7 +57,7 @@ export default class AllNetworkInterfaces extends React.Component {
                 hidden: true,
             }, {
                 dataField: 'AccountNumber',
-                text: 'AccountNumber',
+                text: 'Account',
                 sort: true
             }, {
                 dataField: 'Region',

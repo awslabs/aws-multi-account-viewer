@@ -22,7 +22,6 @@ Current working examples are:
 
 ## Demo
 
-<!-- ![Demo](https://aws-multi-account-viewer-site.s3-ap-southeast-2.amazonaws.com/demo.gif) -->
 <img src="images/demo.gif"></a>
 
 ## On this Page
@@ -142,8 +141,8 @@ yarn start
 
 To add a new services, you need to updating 2 sqs lambdas and creating a new page in the Front-End. 
 
-- Example coming soon.
-- EBS unallocated across accounts.
+- Example of adding a new service here [network-interfaces](https://github.com/awslabs/aws-multi-account-viewer/commit/6f8161656a42194789067a9d18e31b8322f3c5f3)
+
 
 ## Troubleshooting
 

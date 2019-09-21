@@ -57,7 +57,7 @@ export default class AllEC2 extends React.Component {
                 hidden: true,
             }, {
                 dataField: 'AccountNumber',
-                text: 'AccountNumber',
+                text: 'Account',
                 sort: true
             }, {
                 dataField: 'Region',

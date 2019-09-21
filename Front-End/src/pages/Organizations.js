@@ -57,7 +57,7 @@ export default class Organizations extends React.Component {
                 hidden: true,
             }, {
                 dataField: 'AccountNumber',
-                text: 'AccountNumber',
+                text: 'Account',
                 sort: true
             }, {
                 dataField: 'Name',

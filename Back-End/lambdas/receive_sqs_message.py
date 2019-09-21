@@ -29,7 +29,7 @@ try:
     table_name_multi = os.environ['ENV_TABLE_NAME_MULTI']
     queue_url = os.environ['ENV_SQSQUEUE']
 except Exception as e:
-    print(f"No os.environment in lambda....: {e}")
+    print(f'No os.environment in lambda....: {e}')
 
 
 # Try connect Clients
@@ -38,12 +38,12 @@ try:
     dynamodb = boto3.resource('dynamodb', region_name=source_region)
     table = dynamodb.Table(table_name_multi)
 except Exception as e:
-    print(f"failed to speak to dynamo or sqs....: {e}")
+    print(f'failed to speak to dynamo or sqs....: {e}')
 
 
 # event = {
-#     "queryStringParameters": {
-#         "function": "cron"
+#     'queryStringParameters': {
+#         'function': 'cron'
 #     }
 # }
 
@@ -53,7 +53,7 @@ def assume_sts_role(account_to_assume, cross_account_role_name):
 
     # https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-api.html
     sts_client = boto3.client('sts')
-    cross_account_role_arn = f"arn:aws:iam::{account_to_assume}:role/{cross_account_role_name}"
+    cross_account_role_arn = f'arn:aws:iam::{account_to_assume}:role/{cross_account_role_name}'
 
     try:
 
@@ -61,9 +61,9 @@ def assume_sts_role(account_to_assume, cross_account_role_name):
         # ARN and a role session name.
         credentials = sts_client.assume_role(
             RoleArn=cross_account_role_arn,
-            RoleSessionName="TemporaryRole"
+            RoleSessionName='TemporaryRole'
 
-        )["Credentials"]
+        )['Credentials']
 
         # Make temp creds
         temporary_credentials = boto3.Session(
@@ -77,8 +77,8 @@ def assume_sts_role(account_to_assume, cross_account_role_name):
 
     except ClientError as e:
         print(
-            f"Failed on Account: {account_to_assume} with Role: {cross_account_role_arn}")
-        print(f"{cross_account_role_name} might not exists in account?")
+            f'Failed on Account: {account_to_assume} with Role: {cross_account_role_arn}')
+        print(f'{cross_account_role_name} might not exists in account?')
         raise e
 
 
@@ -180,11 +180,11 @@ def get_all_ec2(account_number, region):
         for i in page['Reservations']:
 
             # Check for IAM Role
-            checkIAMrole = i['Instances'][0].get("IamInstanceProfile", " ")
+            checkIAMrole = i['Instances'][0].get('IamInstanceProfile', ' ')
 
             # Convert from string to dict if not empty
             if checkIAMrole != ' ':
-                python_dict = literal_eval(f"{checkIAMrole}")
+                python_dict = literal_eval(f'{checkIAMrole}')
                 full_role_name = python_dict['Arn']
 
                 # clean role name out of arn
@@ -207,11 +207,11 @@ def get_all_ec2(account_number, region):
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'vCPU': int(vCPU),
-                    'KeyName': i['Instances'][0].get("KeyName", " "),
+                    'KeyName': i['Instances'][0].get('KeyName', ' '),
                     'RoleName': str(iam_role),
-                    'PrivateIpAddress': i['Instances'][0].get("PrivateIpAddress", " "),
-                    'PublicIpAddress': i['Instances'][0].get("PublicIpAddress", " "),
-                    'InstancePlatform': i['Instances'][0].get('Platform', "Linux/UNIX"),
+                    'PrivateIpAddress': i['Instances'][0].get('PrivateIpAddress', ' '),
+                    'PublicIpAddress': i['Instances'][0].get('PublicIpAddress', ' '),
+                    'InstancePlatform': i['Instances'][0].get('Platform', 'Linux/UNIX'),
                     'InstanceType': i['Instances'][0]['InstanceType']
                 })
 
@@ -266,7 +266,7 @@ def get_all_iam_users(account_number, region):
                     'AccountNumber': str(account_number),
                     'Region': 'us-east-1',
                     'UserName': str(i['UserName']),
-                    'PasswordLastUsed': str(i.get("PasswordLastUsed", " ")),
+                    'PasswordLastUsed': str(i.get('PasswordLastUsed', ' ')),
                     'CreateDate': str(i['CreateDate'])
                 })
 
@@ -314,7 +314,7 @@ def get_all_odcr(account_number, region):
 
     for page in paginator.paginate():
         for i in page['CapacityReservations']:
-            if i['State'] == "active":
+            if i['State'] == 'active':
                 var_list.append(
                     {
                         'EntryType': 'odcr',
@@ -386,7 +386,7 @@ def get_organizations(account_number, region):
 
     for page in paginator.paginate():
         for i in page['Accounts']:
-            if i['Status'] == "ACTIVE":
+            if i['Status'] == 'ACTIVE':
                 var_list.append(
                     {
                         'AccountNumber': str(i['Id']),
@@ -443,19 +443,18 @@ def get_all_network_interfaces(account_number, region):
 
     for page in paginator.paginate():
         for i in page['NetworkInterfaces']:
-
             var_list.append(
                 {
                     'EntryType': 'network-interfaces',
-                    'PrivateIpAddress': str(i.get("PrivateIpAddress", " ")),
-                    'PublicIp': str(i.get('Association', {}).get('PublicIp', " ")),
+                    'PrivateIpAddress': str(i.get('PrivateIpAddress', ' ')),
+                    'PublicIp': str(i.get('Association', {}).get('PublicIp', ' ')),
                     'AccountNumber': str(account_number),
                     'Region': str(region),
-                    'Status': str(i.get("Status", " ")),
-                    'AttStatus': str(i.get('Attachment', {}).get('Status', " ")),
-                    'InterfaceType': str(i.get("InterfaceType", " ")),
-                    'NetworkInterfaceId': str(i.get("NetworkInterfaceId", " ")),
-                    'Description': str(i.get("Description", " "))
+                    'Status': str(i.get('Status', ' ')),
+                    'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
+                    'InterfaceType': str(i.get('InterfaceType', ' ')),
+                    'NetworkInterfaceId': str(i.get('NetworkInterfaceId', ' ')),
+                    'Description': str(i.get('Description', ' '))
                 })
 
     return var_list
@@ -559,9 +558,9 @@ def get_current_table(account_number, entry_type, region):
         # Scan dynamo for all data
         response = table.query(
             IndexName='EntryType-index',
-            KeyConditionExpression=Key("EntryType").eq(entry_type),
-            FilterExpression=Attr("AccountNumber").eq(account_number) &
-            Attr("Region").eq(region)
+            KeyConditionExpression=Key('EntryType').eq(entry_type),
+            FilterExpression=Attr('AccountNumber').eq(account_number) &
+            Attr('Region').eq(region)
         )
 
         print(f"items from db query: {response['Items']}")
@@ -577,7 +576,7 @@ def dynamo_get_item(dynamodb_item):
 
     try:
         response = table.get_item(Key={'Id': str(dynamodb_item['Id'])})
-        print(f"Sucessfully got {dynamodb_item}")
+        print(f'Sucessfully got {dynamodb_item}')
 
         if 'Item' in response:
             return response['Item']
@@ -585,7 +584,7 @@ def dynamo_get_item(dynamodb_item):
             return None
 
     except ClientError as e:
-        print("Unexpected error: %s" % e)
+        print('Unexpected error: %s' % e)
 
 
 # DynamoDB Create Item
@@ -593,13 +592,15 @@ def dynamo_create_item(dynamodb_item):
 
     try:
 
+        # Put item
         response = table.put_item(Item=dynamodb_item)
 
-        print(f"Sucessfully added {dynamodb_item}")
+        print(f'Sucessfully added {dynamodb_item}')
         return response
 
     except ClientError as e:
-        print("Unexpected error: %s" % e)
+        print(f'Unexpected error: {e}')
+        print(f'failed to add {dynamodb_item}')
 
 
 # DynamoDB Delete Item
@@ -612,12 +613,12 @@ def dynamo_delete_item(dynamodb_item):
                 'Id': dynamodb_item
             })
 
-        print(f"Sucessfully deleted {dynamodb_item}")
+        print(f'Sucessfully deleted {dynamodb_item}')
         return response
 
     except ClientError as e:
-        print(f"FAILED ON ID: {dynamodb_item}")
-        print("Unexpected error: %s" % e)
+        print(f'FAILED ON ID: {dynamodb_item}')
+        print('Unexpected error: %s' % e)
 
 
 # delete all items in table  | function not used |
@@ -646,7 +647,9 @@ def compare_lists_and_update(boto_list, dynamo_list, pop_list):
             if r not in pop_list:
                 print('new item, updating entries now...')
                 r.update({'Id': str(uuid.uuid4())})
-                dynamo_create_item(r)
+                # Strip empty values
+                strip_empty_values = {k: v for k, v in r.items() if v}
+                dynamo_create_item(strip_empty_values)
             else:
                 print('no update needed...')
     else:
@@ -937,14 +940,14 @@ def handle_message_network_interfaces(account_number, region):
     pop_dynamo = []
 
     # get current network interfaces
-    network_interfaces_list = get_all_network_interfaces(account_number=account_number, region=region)
+    network_interfaces_list = get_all_network_interfaces(
+        account_number=account_number, region=region)
 
     # Get current data sitting in Dynamo and remove inactive entries
     dynamo_network_interfaces_list = get_current_table(
         account_number=account_number, entry_type='network-interfaces', region=region)
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_network_interfaces_list)
-    # pop_dynamo = get_current_table(account_number=account_number, entry_type='vpc', region=region)
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(
@@ -968,7 +971,6 @@ def handle_message_subnets(account_number, region):
         account_number=account_number, entry_type='subnet', region=region)
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_subnet_list)
-    # pop_dynamo = get_current_table(account_number=account_number, entry_type='subnet', region=region)
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(
