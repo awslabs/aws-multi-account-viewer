@@ -173,7 +173,7 @@ Resources:
     Type: AWS::SQS::Queue
     Properties:
       DelaySeconds: 0
-      VisibilityTimeout: 30
+      VisibilityTimeout: 60
       MessageRetentionPeriod: 3600 # 1 hour.
       RedrivePolicy:
         deadLetterTargetArn:
