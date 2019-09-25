@@ -26,14 +26,14 @@ try:
     cross_account_role = os.environ['ENV_CROSS_ACCOUNT_ROLE']
     queue_url = os.environ['ENV_SQSQUEUE']
 except Exception as e:
-    print(f"No os.environment in lambda.... {e}")
+    print(f'No os.environment in lambda.... {e}')
 
 
 # Try connect sqs
 try:
     sqs = boto3.client('sqs', region_name=source_region)
 except Exception as e:
-    print(f"cant connect to sqs.... {e}")
+    print(f'cant connect to sqs.... {e}')
 
 
 def reply(message, status_code):
@@ -122,7 +122,8 @@ def lambda_handler(event, context):
 
                 for b in list_of_regions:
 
-                    print(f'sending account: {i} into region: {b}')
+                    print(
+                        f'cron passed: {passed_function} in account: {i} into region: {b}')
                     send_sqs_message(
                         accountNumber=i, function='lambda', region=b)
                     send_sqs_message(accountNumber=i, function='ec2', region=b)
@@ -156,7 +157,8 @@ def lambda_handler(event, context):
 
                 # Do rest of calls in list of regions
                 for b in list_of_regions:
-                    print(f'sending region: {b}')
+                    print(
+                        f'sending function: {passed_function} in account: {i} into region: {b}')
                     send_sqs_message(
                         accountNumber=i, function=passed_function, region=b)
 
@@ -164,5 +166,5 @@ def lambda_handler(event, context):
         return reply(message='sucessfully passed message to sqs', status_code=200)
 
     except ClientError as e:
-        print("Unexpected error: %s" % e)
+        print('Unexpected error: %s' % e)
         return reply(message={'message': f'Error: {e}'}, status_code=500)

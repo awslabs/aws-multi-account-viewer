@@ -7,7 +7,6 @@ import os
 import uuid
 import decimal
 import copy
-import logging
 from ast import literal_eval
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Attr, Key
@@ -29,7 +28,7 @@ try:
     table_name_multi = os.environ['ENV_TABLE_NAME_MULTI']
     queue_url = os.environ['ENV_SQSQUEUE']
 except Exception as e:
-    print(f'No os.environment in lambda....: {e}')
+    print(f'Error: No os.environment in lambda....: {e}')
 
 
 # Try connect Clients
@@ -38,7 +37,7 @@ try:
     dynamodb = boto3.resource('dynamodb', region_name=source_region)
     table = dynamodb.Table(table_name_multi)
 except Exception as e:
-    print(f'failed to speak to dynamo or sqs....: {e}')
+    print(f'Error: failed to speak to dynamo or sqs....: {e}')
 
 
 # event = {
@@ -77,36 +76,37 @@ def assume_sts_role(account_to_assume, cross_account_role_name):
 
     except ClientError as e:
         print(
-            f'Failed on Account: {account_to_assume} with Role: {cross_account_role_arn}')
+            f'Error: on Account: {account_to_assume} with Role: {cross_account_role_arn}')
         print(f'{cross_account_role_name} might not exists in account?')
         raise e
 
 
 # Create Boto Client
-def create_boto_client(account_number, region, service):
+def create_boto_client(account_number, region, service, cross_account_role):
 
     # Use boto3 on source account
     if account_number == source_account:
-        client = boto3.client(service, region_name=region)
-        logging.info(f'skipping STS for local account: {account_number}')
+        client = boto3.client(service, region)
+        print(f'skipping STS for local account: {account_number}')
 
     else:
         # Log into Accounts with STS
         assume_creds = assume_sts_role(account_number, cross_account_role)
-        client = assume_creds.client(service, region_name=region)
-        logging.info(f'Logged into Account: {account_number}')
+        client = assume_creds.client(service, region)
+        print(f'Logged into Account: {account_number}')
 
     return client
 
 
 # Get Lambda Functions
-def get_all_lambda(account_number, region):
+def get_all_lambda(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Change boto client
-    client_lambda = create_boto_client(account_number, region, 'lambda')
+    client_lambda = create_boto_client(
+        account_number, region, 'lambda', cross_account_role)
 
     # Page all ec2
     paginator = client_lambda.get_paginator('list_functions')
@@ -135,13 +135,14 @@ def get_all_lambda(account_number, region):
 
 
 # Get RDS Function
-def get_all_rds(account_number, region):
+def get_all_rds(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Change boto client
-    client_rds = create_boto_client(account_number, region, 'rds')
+    client_rds = create_boto_client(
+        account_number, region, 'rds', cross_account_role)
 
     # Page all db instances
     paginator = client_rds.get_paginator('describe_db_instances')
@@ -165,13 +166,14 @@ def get_all_rds(account_number, region):
 
 
 # Get EC2 Function
-def get_all_ec2(account_number, region):
+def get_all_ec2(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_ec2 = create_boto_client(account_number, region, 'ec2')
+    client_ec2 = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
 
     # Page all ec2
     paginator = client_ec2.get_paginator('describe_instances')
@@ -219,13 +221,14 @@ def get_all_ec2(account_number, region):
 
 
 # Get IAM Roles Function
-def get_all_iam_roles(account_number, region):
+def get_all_iam_roles(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_iam = create_boto_client(account_number, region, 'iam')
+    client_iam = create_boto_client(
+        account_number, region, 'iam', cross_account_role)
 
     # Page roles
     paginator = client_iam.get_paginator('list_roles')
@@ -246,13 +249,14 @@ def get_all_iam_roles(account_number, region):
 
 
 # Get IAM Users Function
-def get_all_iam_users(account_number, region):
+def get_all_iam_users(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_iam = create_boto_client(account_number, region, 'iam')
+    client_iam = create_boto_client(
+        account_number, region, 'iam', cross_account_role)
 
     # Page users
     paginator = client_iam.get_paginator('list_users')
@@ -274,13 +278,14 @@ def get_all_iam_users(account_number, region):
 
 
 # Get IAM Users Function
-def get_all_iam_attached_policys(account_number, region):
+def get_all_iam_attached_policys(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_iam = create_boto_client(account_number, region, 'iam')
+    client_iam = create_boto_client(
+        account_number, region, 'iam', cross_account_role)
 
     # Page policys
     paginator = client_iam.get_paginator('list_policies')
@@ -301,13 +306,14 @@ def get_all_iam_attached_policys(account_number, region):
 
 
 # Get OnDemand Capacity Reservations Function
-def get_all_odcr(account_number, region):
+def get_all_odcr(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_ec2 = create_boto_client(account_number, region, 'ec2')
+    client_ec2 = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
 
     # Page all reservations
     paginator = client_ec2.get_paginator('describe_capacity_reservations')
@@ -341,13 +347,14 @@ def get_all_odcr(account_number, region):
 
 
 # Get Lightsail Instances Function
-def get_all_lightsail(account_number, region):
+def get_all_lightsail(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_lightsail = create_boto_client(account_number, region, 'lightsail')
+    client_lightsail = create_boto_client(
+        account_number, region, 'lightsail', cross_account_role)
 
     # Page all reservations
     paginator = client_lightsail.get_paginator('get_instances')
@@ -359,27 +366,28 @@ def get_all_lightsail(account_number, region):
                     'EntryType': 'lightsail',
                     'AccountNumber': str(account_number),
                     'Region': str(region),
-                    'AvailabilityZone': i['location']['availabilityZone'],
-                    'Name': i['name'],
+                    'AvailabilityZone': str(i['location']['availabilityZone']),
+                    'Name': str(i['name']),
                     'CreateDate': str(i['createdAt']),
                     'Blueprint': str(i['blueprintName']),
                     'RAM in GB': str(i['hardware']['ramSizeInGb']),
                     'vCPU': str(i['hardware']['cpuCount']),
-                    'SSD in GB': i['hardware']['disks'][0]['sizeInGb'],
-                    'Public IP': i['publicIpAddress'],
+                    'SSD in GB': str(i['hardware']['disks'][0]['sizeInGb']),
+                    'Public IP': str(i['publicIpAddress']),
                 })
 
     return var_list
 
 
 # Get Organizations Function
-def get_organizations(account_number, region):
+def get_organizations(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_org = create_boto_client(account_number, region, 'organizations')
+    client_org = create_boto_client(
+        account_number, region, 'organizations', cross_account_role)
 
     # Page all org
     paginator = client_org.get_paginator('list_accounts')
@@ -402,13 +410,14 @@ def get_organizations(account_number, region):
 
 
 # Get VPC Function
-def get_all_vpc(account_number, region):
+def get_all_vpc(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_ec2 = create_boto_client(account_number, region, 'ec2')
+    client_ec2 = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
 
     # Page all vpc's
     paginator = client_ec2.get_paginator('describe_vpcs')
@@ -430,13 +439,14 @@ def get_all_vpc(account_number, region):
 
 
 # Get All Network Interfaces Function
-def get_all_network_interfaces(account_number, region):
+def get_all_network_interfaces(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_ec2 = create_boto_client(account_number, region, 'ec2')
+    client_ec2 = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
 
     # Page all vpc's
     paginator = client_ec2.get_paginator('describe_network_interfaces')
@@ -461,13 +471,14 @@ def get_all_network_interfaces(account_number, region):
 
 
 # Get Subnet Function
-def get_all_subnets(account_number, region):
+def get_all_subnets(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_ec2 = create_boto_client(account_number, region, 'ec2')
+    client_ec2 = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
 
     # No paginator for subnets
     # paginator = client_ec2.get_paginator('describe_subnets')
@@ -492,13 +503,14 @@ def get_all_subnets(account_number, region):
 
 
 # Get Reserved Instances
-def get_all_ris(account_number, region):
+def get_all_ris(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_ec2 = create_boto_client(account_number, region, 'ec2')
+    client_ec2 = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
 
     # No paginator for reservations
     # paginator = client_ec2.get_paginator('')
@@ -526,13 +538,14 @@ def get_all_ris(account_number, region):
 
 
 # Get S3 Buckets
-def get_all_s3_buckets(account_number, region):
+def get_all_s3_buckets(account_number, region, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
-    client_s3 = create_boto_client(account_number, region, 's3')
+    client_s3 = create_boto_client(
+        account_number, region, 's3', cross_account_role)
 
     # No paginator for listing buckets
     # paginator = client_ec2.get_paginator('')
@@ -567,24 +580,29 @@ def get_current_table(account_number, entry_type, region):
         return response['Items']
 
     except ClientError as e:
-        print('failed to query dynamodb table...')
-        print(e)
+        print(f'Error: failed to query dynamodb table... {e}')
+    except Exception as e:
+        print(f'Error: failed to query dynamodb table...{e}')
 
 
-# DynamoDB Get Item
-def dynamo_get_item(dynamodb_item):
+# Get data sitting in DynamoDB without account look up
+def get_current_table_without_account(entry_type, region):
 
     try:
-        response = table.get_item(Key={'Id': str(dynamodb_item['Id'])})
-        print(f'Sucessfully got {dynamodb_item}')
+        # Scan dynamo for all data
+        response = table.query(
+            IndexName='EntryType-index',
+            KeyConditionExpression=Key('EntryType').eq(entry_type),
+            FilterExpression=Attr('Region').eq(region)
+        )
 
-        if 'Item' in response:
-            return response['Item']
-        else:
-            return None
+        print(f"items from db query: {response['Items']}")
+        return response['Items']
 
     except ClientError as e:
-        print('Unexpected error: %s' % e)
+        print(f'Error: failed to query dynamodb table...{e}')
+    except Exception as e:
+        print(f'Error: failed to query dynamodb table...{e}')
 
 
 # DynamoDB Create Item
@@ -599,8 +617,9 @@ def dynamo_create_item(dynamodb_item):
         return response
 
     except ClientError as e:
-        print(f'Unexpected error: {e}')
-        print(f'failed to add {dynamodb_item}')
+        print(f'Error: failed to add {dynamodb_item} - {e}')
+    except Exception as e:
+        print(f'Error: creating item {dynamodb_item} - {e}')
 
 
 # DynamoDB Delete Item
@@ -617,11 +636,10 @@ def dynamo_delete_item(dynamodb_item):
         return response
 
     except ClientError as e:
-        print(f'FAILED ON ID: {dynamodb_item}')
-        print('Unexpected error: %s' % e)
+        print(f'Error: Failed ON ID: {dynamodb_item} - {e}')
 
 
-# delete all items in table  | function not used |
+# delete all items in table, function not used but good for testing
 def dynamo_delete_all_items():
     scan = table.scan(
         ProjectionExpression='#k',
@@ -686,343 +704,73 @@ def reply(message, status_code):
     }
 
 
-# Logic for Lambda
-def handle_message_lambda(account_number, region):
+# Logic to compare what current boto see's vs whats in dynamodb
+def compare_and_update_function(account_number, region, sqs_fun, cross_account_role):
     print('printing event....')
 
     # init
-    lambda_list = []
-    dynamo_lambda_list = []
+    current_boto_list = []
+    dynamo_list = []
     pop_dynamo = []
 
-    # get current lambdas
-    lambda_list = get_all_lambda(account_number=account_number, region=region)
+    # Get Current Boto Data
+    if sqs_fun == 'lambda':
+        current_boto_list = get_all_lambda(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'ec2':
+        current_boto_list = get_all_ec2(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'rds':
+        current_boto_list = get_all_rds(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'iam-roles':
+        current_boto_list = get_all_iam_roles(
+            account_number, 'us-east-1', cross_account_role)
+    if sqs_fun == 'iam-users':
+        current_boto_list = get_all_iam_users(
+            account_number, 'us-east-1', cross_account_role)
+    if sqs_fun == 'iam-attached-policys':
+        current_boto_list = get_all_iam_attached_policys(
+            account_number, 'us-east-1', cross_account_role)
+    if sqs_fun == 'odcr':
+        current_boto_list = get_all_odcr(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'lightsail':
+        current_boto_list = get_all_lightsail(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'org':
+        current_boto_list = get_organizations(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'vpc':
+        current_boto_list = get_all_vpc(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'network-interfaces':
+        current_boto_list = get_all_network_interfaces(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'subnet':
+        current_boto_list = get_all_subnets(
+            account_number, region, cross_account_role)
+    if sqs_fun == 'ri':
+        current_boto_list = get_all_ris(
+            account_number, region, cross_account_role)
+    if sqs_fun == 's3-buckets':
+        current_boto_list = get_all_s3_buckets(
+            account_number, 'us-east-1', cross_account_role)
 
     # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_lambda_list = get_current_table(
-        account_number=account_number, entry_type='lambda', region=region)
+    if sqs_fun == 'org':
+        dynamo_list = get_current_table_without_account(
+            entry_type=sqs_fun, region='us-east-1')
+    else:
+        dynamo_list = get_current_table(
+            account_number=account_number, entry_type=sqs_fun, region=region)
 
     # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_lambda_list)
+    pop_dynamo = copy.deepcopy(dynamo_list)
 
     # remove Id key from dynamodb item and check if value has changed.
     compare_lists_and_update(
-        boto_list=lambda_list, dynamo_list=dynamo_lambda_list, pop_list=pop_dynamo)
-
-
-# Logic for RDS
-def handle_message_rds(account_number, region):
-    print('printing event....')
-
-    # init
-    rds_list = []
-    dynamo_rds_list = []
-    pop_dynamo = []
-
-    # get current rds
-    rds_list = get_all_rds(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_rds_list = get_current_table(
-        account_number=account_number, entry_type='rds', region=region)
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_rds_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=rds_list, dynamo_list=dynamo_rds_list, pop_list=pop_dynamo)
-
-
-# Logic for EC2
-def handle_message_ec2(account_number, region):
-    print('printing event....')
-
-    # init
-    ec2_list = []
-    dynamo_ec2_list = []
-    pop_dynamo = []
-
-    # Get current ec2
-    ec2_list = get_all_ec2(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_ec2_list = get_current_table(
-        account_number=account_number, entry_type='ec2', region=region)
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_ec2_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=ec2_list, dynamo_list=dynamo_ec2_list, pop_list=pop_dynamo)
-
-
-# Logic for IAM Roles
-def handle_message_iam_role(account_number, region):
-    print('printing event....')
-
-    # init
-    roles = []
-    dynamo_roles = []
-    pop_dynamo = []
-
-    # get current roles
-    roles = get_all_iam_roles(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_roles = get_current_table(
-        account_number=account_number, entry_type='iam-roles', region='us-east-1')
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_roles)
-
-    # Check and compare unique entry for whats currently in boto3 iam list and whats in dynamodb
-    compare_lists_and_update(
-        boto_list=roles, dynamo_list=dynamo_roles, pop_list=pop_dynamo)
-
-
-# Logic for IAM Users
-def handle_message_iam_users(account_number, region):
-    print('printing event....')
-
-    # init
-    users = []
-    dynamo_users = []
-    pop_dynamo = []
-
-    # get current users
-    users = get_all_iam_users(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_users = get_current_table(
-        account_number=account_number, entry_type='iam-users', region='us-east-1')
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_users)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=users, dynamo_list=dynamo_users, pop_list=pop_dynamo)
-
-
-# Logic for IAM List Policys
-def handle_message_iam_attached_policys(account_number, region):
-    print('printing event....')
-
-    # init
-    current_policys = []
-    dynamo_policys = []
-    pop_dynamo = []
-
-    # Get current policys
-    current_policys = get_all_iam_attached_policys(
-        account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_policys = get_current_table(
-        account_number=account_number, entry_type='iam-attached-policys', region='us-east-1')
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_policys)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(boto_list=current_policys,
-                             dynamo_list=dynamo_policys, pop_list=pop_dynamo)
-
-
-# Logic for OnDemand Capacity Reservations
-def handle_message_odcr(account_number, region):
-    print('printing event....')
-
-    # init
-    odcr_list = []
-    dynamo_odcr_list = []
-    pop_dynamo = []
-
-    # get current odcr
-    odcr_list = get_all_odcr(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_odcr_list = get_current_table(
-        account_number=account_number, entry_type='odcr', region=region)
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_odcr_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=odcr_list, dynamo_list=dynamo_odcr_list, pop_list=pop_dynamo)
-
-
-# Logic for Lightsail Instances
-def handle_message_lightsail(account_number, region):
-    print('printing event....')
-
-    # init
-    lightsail_list = []
-    dynamo_lightsail_list = []
-    pop_dynamo = []
-
-    # get current lightsail
-    lightsail_list = get_all_lightsail(
-        account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_lightsail_list = get_current_table(
-        account_number=account_number, entry_type='lightsail', region=region)
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_lightsail_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=lightsail_list, dynamo_list=dynamo_lightsail_list, pop_list=pop_dynamo)
-
-
-# Logic for Organizations
-def handle_message_organizations(account_number, region):
-    print('printing event....')
-
-    # init
-    org_list = []
-    dynamo_org_list = []
-    pop_dynamo = []
-
-    # get current Org
-    org_list = get_organizations(account_number=account_number, region=region)
-
-    # Need Custom Query for Organizations, don't include account number
-    dynamo_org_list = table.query(
-        IndexName='EntryType-index',
-        KeyConditionExpression=Key('EntryType').eq('org'),
-        FilterExpression=Attr('Region').eq('us-east-1'))['Items']
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_org_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=org_list, dynamo_list=dynamo_org_list, pop_list=pop_dynamo)
-
-
-# Logic for VPC
-def handle_message_vpc(account_number, region):
-    print('printing event....')
-
-    # init
-    vpc_list = []
-    dynamo_vpc_list = []
-    pop_dynamo = []
-
-    # get current vpcs
-    vpc_list = get_all_vpc(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_vpc_list = get_current_table(
-        account_number=account_number, entry_type='vpc', region=region)
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_vpc_list)
-    # pop_dynamo = get_current_table(account_number=account_number, entry_type='vpc', region=region)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=vpc_list, dynamo_list=dynamo_vpc_list, pop_list=pop_dynamo)
-
-
-# Logic for Network Interfaces
-def handle_message_network_interfaces(account_number, region):
-    print('printing event....')
-
-    # init
-    network_interfaces_list = []
-    dynamo_network_interfaces_list = []
-    pop_dynamo = []
-
-    # get current network interfaces
-    network_interfaces_list = get_all_network_interfaces(
-        account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_network_interfaces_list = get_current_table(
-        account_number=account_number, entry_type='network-interfaces', region=region)
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_network_interfaces_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=network_interfaces_list, dynamo_list=dynamo_network_interfaces_list, pop_list=pop_dynamo)
-
-
-# Logic for Subnets
-def handle_message_subnets(account_number, region):
-    print('printing event....')
-
-    # init
-    subnet_list = []
-    dynamo_subnet_list = []
-    pop_dynamo = []
-
-    # get current subnets
-    subnet_list = get_all_subnets(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_subnet_list = get_current_table(
-        account_number=account_number, entry_type='subnet', region=region)
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_subnet_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=subnet_list, dynamo_list=dynamo_subnet_list, pop_list=pop_dynamo)
-
-
-# Logic for RI's
-def handle_message_ris(account_number, region):
-    print('printing event....')
-
-    # init
-    ri_list = []
-    dynamo_ri_list = []
-    pop_dynamo = []
-
-    # get current ris
-    ri_list = get_all_ris(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_ri_list = get_current_table(
-        account_number=account_number, entry_type='ri', region=region)
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_ri_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=ri_list, dynamo_list=dynamo_ri_list, pop_list=pop_dynamo)
-
-
-# Logic for S3 Buckets
-def handle_message_s3_buckets(account_number, region):
-    print('printing event....')
-
-    # init
-    s3_list = []
-    dynamo_s3_list = []
-    pop_dynamo = []
-
-    # get current s3 buckets
-    s3_list = get_all_s3_buckets(account_number=account_number, region=region)
-
-    # Get current data sitting in Dynamo and remove inactive entries
-    dynamo_s3_list = get_current_table(
-        account_number=account_number, entry_type='s3-buckets', region='us-east-1')
-
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_s3_list)
-
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=s3_list, dynamo_list=dynamo_s3_list, pop_list=pop_dynamo)
+        boto_list=current_boto_list, dynamo_list=dynamo_list, pop_list=pop_dynamo)
 
 
 # Default Lambda
@@ -1031,7 +779,7 @@ def lambda_handler(event, context):
     print(json.dumps(event))
 
     # message hasn't failed yet
-    failed = False
+    failed_message = False
 
     try:
         message = event['Records'][0]
@@ -1048,43 +796,38 @@ def lambda_handler(event, context):
 
         print(f'function passed is: {function}')
 
-        if function == 'lambda':
-            handle_message_lambda(account_number, region)
-        if function == 'ec2':
-            handle_message_ec2(account_number, region)
-        if function == 'rds':
-            handle_message_rds(account_number, region)
-        if function == 'iam-roles':
-            handle_message_iam_role(account_number, region)
-        if function == 'iam-users':
-            handle_message_iam_users(account_number, region)
-        if function == 'iam-attached-policys':
-            handle_message_iam_attached_policys(account_number, region)
-        if function == 'odcr':
-            handle_message_odcr(account_number, region)
-        if function == 'lightsail':
-            handle_message_lightsail(account_number, region)
-        if function == 'org':
-            handle_message_organizations(account_number, region)
-        if function == 'vpc':
-            handle_message_vpc(account_number, region)
-        if function == 'network-interfaces':
-            handle_message_network_interfaces(account_number, region)
-        if function == 'subnet':
-            handle_message_subnets(account_number, region)
-        if function == 'ri':
-            handle_message_ris(account_number, region)
-        if function == 's3-buckets':
-            handle_message_s3_buckets(account_number, region)
+        # Try run each function
+        try:
+
+            # Lambda logic
+            compare_and_update_function(
+                account_number, region, function, cross_account_role)
+
+
+        except ClientError as e:
+            print(
+                f'Error: with {function}, in account {account_number}, in region {region} - {e}')
+            failed_message = True
+            raise e
+        except Exception as e:
+            print(
+                f'Error: with {function}, in account {account_number}, in region {region} - {e}')
+            failed_message = True
+            raise e
+
 
     except ClientError as e:
-        print('failed to process message')
-        print(e)
-        failed = True
+        print(f'Error: on processing message, {e}')
+        failed_message = True
+        raise e
+    except Exception as e:
+        print(f'Error: on processing message, {e}')
+        failed_message = True
+        raise e
 
-    # message must have passed, delete from queue
-    if failed is False:
-        # The message was handled successfully. We can delete it now.
+
+    # message must have passed, deleting
+    if failed_message is False:
         client_sqs.delete_message(
             QueueUrl=queue_url,
             ReceiptHandle=receipt_handle,
