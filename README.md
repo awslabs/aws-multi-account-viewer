@@ -141,7 +141,7 @@ yarn start
 
 To add a new services, you need to updating 2 sqs lambdas and creating a new page in the Front-End. 
 
-- Example of adding a new service here [network-interfaces](https://github.com/awslabs/aws-multi-account-viewer/commit/6f8161656a42194789067a9d18e31b8322f3c5f3)
+- Example of adding a new service here [to-do]()
 
 
 ## Troubleshooting
@@ -168,7 +168,7 @@ Copy and paste query below to only see Errors & Exceptions:
 
 ```bash
 fields @message 
-| filter @message like /error/ or @message like /exception/
+| filter @message like /Error/ or @message like /Exception/
 | limit 50
 ```
 ![](images/sample-exception.png)

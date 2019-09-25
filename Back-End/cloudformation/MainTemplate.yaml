@@ -12,7 +12,7 @@ Parameters:
     Type: Number
     Default: 1 # in Days: 1, 3, 5, 7, 14, 30, 60, 90, 120, 150, 180, 365, 400, 545, 731, 1827, 3653
     Description: Days to keep lambda logs
-  TableMultiAccount:
+  TableName:
     Type: String
     Default: multi-account-table
     Description: Name of DynamoDB table
@@ -69,22 +69,14 @@ Parameters:
     Type: String
     Description: How often to update all services to DynamoDB table, recommend not going below 3 Minutes
     Default: rate(5 minutes)
-  DynamoWriteSpeed:
+  MinDynamoScaleSpeed:
     Type: Number
-    Description: How many wcu to set DynamoDB for, free tier is 25
+    Description: How low should DynamoDB scale
     Default: 25
-  DynamoReadSpeed:
+  MaxDynamoScaleSpeed:
     Type: Number
-    Description: How many rcu to set DynamoDB for, free tier is 25
-    Default: 25
-  DynamoIndexWriteSpeed:
-    Type: Number
-    Description: How many wcu to set DynamoDB for, free tier is 25
-    Default: 25
-  DynamoIndexReadSpeed:
-    Type: Number
-    Description: How many rcu to set DynamoDB for, free tier is 25
-    Default: 25
+    Description: How high should DynamoDB scale
+    Default: 250
 
 Resources:
 # IAM Resources
@@ -94,14 +86,13 @@ Resources:
       AssumeRolePolicyDocument:
         Version: "2012-10-17"
         Statement:
-          -
-            Effect: Allow
+          - Effect: Allow
             Principal:
-              Service: [lambda.amazonaws.com]
-            Action:
-              - sts:AssumeRole
+              Service: lambda.amazonaws.com
+            Action: "sts:AssumeRole"
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/ReadOnlyAccess
       Policies:
         - PolicyName: !Sub "${AWS::StackName}-LambdaDynamoDB"
           PolicyDocument:
@@ -111,8 +102,8 @@ Resources:
                 Action:
                   - dynamodb:*
                 Resource:
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableMultiAccount}"
-                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableMultiAccount}/index/*"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}"
+                  - !Sub "arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TableName}/index/*"
         - PolicyName: !Sub "${AWS::StackName}-LambdaAssumeRole"
           PolicyDocument:
             Version: "2012-10-17"
@@ -127,17 +118,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - iam:List*
-                  - rds:Describe*
-                  - organizations:ListAccounts
-                  - ec2:Describe*
-                  - lambda:List*
-                  - lambda:Get*
-                  - s3:Get*
-                  - s3:List*
                   - xray:Put*
-                  - xray:Get*
-                  - lightsail:Get*
                 Resource: "*"
         - PolicyName: !Sub "${AWS::StackName}-LambdaSQS"
           PolicyDocument:
@@ -150,13 +131,61 @@ Resources:
               - sqs:SendMessage
               - sqs:GetQueueAttributes
               - sqs:ChangeMessageVisibility
-              Resource: !GetAtt MyQueue.Arn
+              Resource: 
+                - !GetAtt MyQueue.Arn
+                - !GetAtt ReceiverDeadLetterQueue.Arn
+
+  # Scaling Role for DynamoDB
+  ScalingRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - application-autoscaling.amazonaws.com
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: "root"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:UpdateTable"
+                  - "cloudwatch:PutMetricAlarm"
+                  - "cloudwatch:DescribeAlarms"
+                  - "cloudwatch:GetMetricStatistics"
+                  - "cloudwatch:SetAlarmState"
+                  - "cloudwatch:DeleteAlarms"
+                Resource: "*"
+
 # SQS Queue
   MyQueue:
     Type: AWS::SQS::Queue
     Properties:
       DelaySeconds: 0
-      VisibilityTimeout: 120
+      VisibilityTimeout: 60
+      MessageRetentionPeriod: 3600 # 1 hour.
+      RedrivePolicy:
+        deadLetterTargetArn:
+          "Fn::GetAtt":
+            - ReceiverDeadLetterQueue
+            - Arn
+        maxReceiveCount: 1
+  # Dead Letter
+  ReceiverDeadLetterQueue:
+    Type: "AWS::SQS::Queue"
+    Properties:
+      MessageRetentionPeriod: 86400 # 1 days in seconds
 
   LambdaFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -207,7 +236,7 @@ Resources:
           ENV_SOURCE_ACCOUNT: !Ref SourceAccount
           ENV_SOURCE_REGION: !Ref SourceRegion
           ENV_CROSS_ACCOUNT_ROLE: !Ref CrossAccountAccessRole
-          ENV_TABLE_NAME_MULTI: !Ref TableMultiAccount
+          ENV_TABLE_NAME_MULTI: !Ref TableName
           ENV_SQSQUEUE: !Ref MyQueue
 
   LambdaListTableFunction:
@@ -226,7 +255,7 @@ Resources:
       Environment:
         Variables:
           ENV_SOURCE_REGION: !Ref SourceRegion
-          ENV_TABLE_NAME_MULTI: !Ref TableMultiAccount
+          ENV_TABLE_NAME_MULTI: !Ref TableName
 
 # API Gateway Rest API
   MyRestApi:
@@ -477,7 +506,7 @@ Resources:
      Properties: 
        SSESpecification:
           SSEEnabled: True
-       TableName: !Ref TableMultiAccount
+       TableName: !Ref TableName
        AttributeDefinitions: 
          - AttributeName: Id
            AttributeType: S
@@ -487,8 +516,8 @@ Resources:
          - AttributeName: Id
            KeyType: HASH
        ProvisionedThroughput: 
-         ReadCapacityUnits: !Ref DynamoReadSpeed
-         WriteCapacityUnits: !Ref DynamoWriteSpeed
+         ReadCapacityUnits: 25
+         WriteCapacityUnits: 25
        GlobalSecondaryIndexes:
          -
           IndexName: "EntryType-index"
@@ -498,8 +527,98 @@ Resources:
           Projection: 
             ProjectionType: ALL
           ProvisionedThroughput:
-            ReadCapacityUnits: !Ref DynamoIndexReadSpeed
-            WriteCapacityUnits: !Ref DynamoIndexWriteSpeed
+            ReadCapacityUnits: 25
+            WriteCapacityUnits: 25
+
+  # DynamoDB Scaling
+  UserTableWriteCapacityScalableTarget: 
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties: 
+      MaxCapacity: !Ref MaxDynamoScaleSpeed
+      MinCapacity: !Ref MinDynamoScaleSpeed
+      ResourceId: !Sub table/${TableName}
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: "dynamodb:table:WriteCapacityUnits"
+      ServiceNamespace: dynamodb
+  UserTableWriteScalingPolicy: 
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties: 
+      PolicyName: WriteAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: 
+        Ref: UserTableWriteCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration: 
+        TargetValue: 70
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+  UserIndexWriteCapacityScalableTarget: 
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties: 
+      MaxCapacity: !Ref MaxDynamoScaleSpeed
+      MinCapacity: !Ref MinDynamoScaleSpeed
+      ResourceId: !Sub table/${TableName}/index/EntryType-index
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: "dynamodb:index:WriteCapacityUnits"
+      ServiceNamespace: dynamodb
+  UserIndexWriteScalingPolicy: 
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties: 
+      PolicyName: WriteAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: 
+        Ref: UserIndexWriteCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration: 
+        TargetValue: 70
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: DynamoDBWriteCapacityUtilization
+  UserTableReadCapacityScalableTarget: 
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties: 
+      MaxCapacity: !Ref MaxDynamoScaleSpeed
+      MinCapacity: !Ref MinDynamoScaleSpeed
+      ResourceId: !Sub table/${TableName}
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: "dynamodb:table:ReadCapacityUnits"
+      ServiceNamespace: dynamodb
+  UserTableReadScalingPolicy: 
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties: 
+      PolicyName: ReadAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: 
+        Ref: UserTableReadCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration: 
+        TargetValue: 70
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
+  UserIndexReadCapacityScalableTarget: 
+    Type: "AWS::ApplicationAutoScaling::ScalableTarget"
+    Properties: 
+      MaxCapacity: !Ref MaxDynamoScaleSpeed
+      MinCapacity: !Ref MinDynamoScaleSpeed
+      ResourceId: !Sub table/${TableName}/index/EntryType-index
+      RoleARN: !GetAtt ScalingRole.Arn
+      ScalableDimension: "dynamodb:index:ReadCapacityUnits"
+      ServiceNamespace: dynamodb
+  UserIndexReadScalingPolicy: 
+    Type: "AWS::ApplicationAutoScaling::ScalingPolicy"
+    Properties: 
+      PolicyName: ReadAutoScalingPolicy
+      PolicyType: TargetTrackingScaling
+      ScalingTargetId: 
+        Ref: UserIndexReadCapacityScalableTarget
+      TargetTrackingScalingPolicyConfiguration: 
+        TargetValue: 70
+        ScaleInCooldown: 60
+        ScaleOutCooldown: 60
+        PredefinedMetricSpecification: 
+          PredefinedMetricType: DynamoDBReadCapacityUtilization
 
 Outputs:
   UserPoolId: 
