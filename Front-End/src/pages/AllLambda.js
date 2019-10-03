@@ -87,6 +87,10 @@ export default class AllLambda extends React.Component {
                 dataField: 'LastModified',
                 text: 'LastModified',
                 sort: true
+            },{
+                dataField: 'Tags',
+                text: 'Tags',
+                sort: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

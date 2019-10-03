@@ -87,6 +87,10 @@ export default class AllRDS extends React.Component {
                 dataField: 'PubliclyAccessible',
                 text: 'PubliclyAccessible',
                 sort: true
+            },{
+                dataField: 'Tags',
+                text: 'Tags',
+                sort: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>
@@ -101,8 +105,3 @@ export default class AllRDS extends React.Component {
                 )
     }
 }
-
-
-
-
-

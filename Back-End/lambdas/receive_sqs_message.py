@@ -117,6 +117,17 @@ def get_all_lambda(account_number, region, cross_account_role):
             # clean role name out of arn
             iam_role = str(i['Role']).split(':')[5].split('/')[1]
 
+            # Get tags
+            lambda_arn = i['FunctionArn']
+            lambda_tag = client_lambda.list_tags(Resource=lambda_arn)['Tags']
+
+            # Turn Tags into Strings for Table format on front end
+            tag_str = ' '
+            if len(lambda_tag) >= 1:
+                tag_str = str(lambda_tag)
+            else:
+                tag_str = ' '
+
             var_list.append(
                 {
                     'EntryType': 'lambda',
@@ -128,7 +139,8 @@ def get_all_lambda(account_number, region, cross_account_role):
                     'Timeout': str(i['Timeout']),
                     'RoleName': str(iam_role),
                     'MemorySize': str(i['MemorySize']),
-                    'LastModified': str(i['LastModified'])
+                    'LastModified': str(i['LastModified']),
+                    'Tags': str(tag_str)
                 })
 
     return var_list
@@ -149,6 +161,30 @@ def get_all_rds(account_number, region, cross_account_role):
 
     for page in paginator.paginate():
         for i in page['DBInstances']:
+
+            # Get tags
+            instance = i['DBInstanceArn']
+            rds_tag = client_rds.list_tags_for_resource(
+                ResourceName=instance)['TagList']
+
+            # Turn Tags into Strings for Table format on front end
+            tag_str = ' '
+            if len(rds_tag) >= 1:
+                tag_str = str(rds_tag)
+            else:
+                tag_str = ' '
+
+            # # Turn Tags into Strings for Table format on front end
+            # tag_str = ' '
+            # if len(rds_tag) >= 1:
+            #     tag_str = ''
+            #     for z in rds_tag:
+            #         tag_str = tag_str + '--> '
+            #         for value in z.values():
+            #             tag_str = tag_str + '' + value + ' '
+            # else:
+            #     tag_str = ' '
+
             var_list.append(
                 {
                     'EntryType': 'rds',
@@ -159,7 +195,8 @@ def get_all_rds(account_number, region, cross_account_role):
                     'DBInstanceClass': i['DBInstanceClass'],
                     'Engine': i['Engine'],
                     'MultiAZ': i['MultiAZ'],
-                    'PubliclyAccessible': i['PubliclyAccessible']
+                    'PubliclyAccessible': i['PubliclyAccessible'],
+                    'Tags': str(tag_str)
                 })
 
     return var_list
@@ -201,6 +238,14 @@ def get_all_ec2(account_number, region, cross_account_role):
             # Cores x thread = vCPU count
             vCPU = int(vcpu_core) * int(vcpu_thread)
 
+            # Turn Tags into Strings for Table format on front end
+            tag_str = ' '
+            ec2_tags = i['Instances'][0].get('Tags', ' ')
+            if len(ec2_tags) > 1:
+                tag_str = str(ec2_tags)
+            else:
+                tag_str = ' '
+
             var_list.append(
                 {
                     'EntryType': 'ec2',
@@ -214,7 +259,8 @@ def get_all_ec2(account_number, region, cross_account_role):
                     'PrivateIpAddress': i['Instances'][0].get('PrivateIpAddress', ' '),
                     'PublicIpAddress': i['Instances'][0].get('PublicIpAddress', ' '),
                     'InstancePlatform': i['Instances'][0].get('Platform', 'Linux/UNIX'),
-                    'InstanceType': i['Instances'][0]['InstanceType']
+                    'InstanceType': i['Instances'][0]['InstanceType'],
+                    'Tags': str(tag_str)
                 })
 
     return var_list
@@ -271,7 +317,8 @@ def get_all_iam_users(account_number, region, cross_account_role):
                     'Region': 'us-east-1',
                     'UserName': str(i['UserName']),
                     'PasswordLastUsed': str(i.get('PasswordLastUsed', ' ')),
-                    'CreateDate': str(i['CreateDate'])
+                    'CreateDate': str(i['CreateDate']),
+                    'Tags': str(i.get('Tags', ' '))
                 })
 
     return var_list
@@ -432,7 +479,8 @@ def get_all_vpc(account_number, region, cross_account_role):
                     'CidrBlock': str(i['CidrBlock']),
                     'VpcId': str(i['VpcId']),
                     'DhcpOptionsId': i['DhcpOptionsId'],
-                    'InstanceTenancy': i['InstanceTenancy']
+                    'InstanceTenancy': i['InstanceTenancy'],
+                    'Tags': str(i.get('Tags', ' '))
                 })
 
     return var_list
@@ -496,7 +544,8 @@ def get_all_subnets(account_number, region, cross_account_role):
                 'SubnetId': str(i['SubnetId']),
                 'VpcId': str(i['VpcId']),
                 'SubnetArn': str(i['SubnetArn']),
-                'AvailableIpAddressCount': i['AvailableIpAddressCount']
+                'AvailableIpAddressCount': i['AvailableIpAddressCount'],
+                'Tags': str(i.get('Tags', ' '))
             })
 
     return var_list
@@ -803,7 +852,6 @@ def lambda_handler(event, context):
             compare_and_update_function(
                 account_number, region, function, cross_account_role)
 
-
         except ClientError as e:
             print(
                 f'Error: with {function}, in account {account_number}, in region {region} - {e}')
@@ -815,7 +863,6 @@ def lambda_handler(event, context):
             failed_message = True
             raise e
 
-
     except ClientError as e:
         print(f'Error: on processing message, {e}')
         failed_message = True
@@ -824,7 +871,6 @@ def lambda_handler(event, context):
         print(f'Error: on processing message, {e}')
         failed_message = True
         raise e
-
 
     # message must have passed, deleting
     if failed_message is False:
