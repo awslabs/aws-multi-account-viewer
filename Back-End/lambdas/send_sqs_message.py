@@ -101,69 +101,98 @@ def lambda_handler(event, context):
         global_api = ['iam-roles', 'iam-users',
                       'iam-attached-policys', 's3-buckets']
 
-        # if cron, send all messages to all accounts
-        if passed_function == 'cron':
+        allowed_functions = [
+            'cron',
+            'iam-roles',
+            'iam-users',
+            'iam-attached-policys',
+            's3-buckets',
+            'org',
+            'lambda',
+            'ec2',
+            'rds',
+            'odcr',
+            'lightsail',
+            'network-interfaces',
+            'vpc',
+            'ri',
+            'testpass'
+        ]
 
-            # Organizations only needs source_account
-            send_sqs_message(accountNumber=source_account,
-                             function='org', region='us-east-1')
+        # Only Allow functions in this list
+        if passed_function not in allowed_functions:
+            print('passed function isnt on allowed list')
+            return reply(message='passed function isnt on allowed list', status_code=500)
 
-            for i in list_of_accounts:
-
-                # Global API, don't hit each region
-                send_sqs_message(
-                    accountNumber=i, function='iam-roles', region='us-east-1')
-                send_sqs_message(
-                    accountNumber=i, function='iam-users', region='us-east-1')
-                send_sqs_message(
-                    accountNumber=i, function='iam-attached-policys', region='us-east-1')
-                send_sqs_message(
-                    accountNumber=i, function='s3-buckets', region='us-east-1')
-
-                for b in list_of_regions:
-
-                    print(
-                        f'cron passed: {passed_function} in account: {i} into region: {b}')
-                    send_sqs_message(
-                        accountNumber=i, function='lambda', region=b)
-                    send_sqs_message(accountNumber=i, function='ec2', region=b)
-                    send_sqs_message(accountNumber=i, function='rds', region=b)
-                    send_sqs_message(
-                        accountNumber=i, function='odcr', region=b)
-                    send_sqs_message(
-                        accountNumber=i, function='lightsail', region=b)
-                    send_sqs_message(accountNumber=i, function='vpc', region=b)
-                    send_sqs_message(
-                        accountNumber=i, function='network-interfaces', region=b)
-                    send_sqs_message(
-                        accountNumber=i, function='subnet', region=b)
-                    send_sqs_message(accountNumber=i, function='ri', region=b)
-
-        # if function is organizations
-        elif passed_function == 'org':
-            send_sqs_message(accountNumber=source_account,
-                             function='org', region='us-east-1')
-
-        # if function is global and doesn't need each region
-        elif passed_function in global_api:
-            for i in list_of_accounts:
-                send_sqs_message(
-                    accountNumber=i, function=passed_function, region='us-east-1')
-
-        # Else send the function to all accounts
         else:
 
-            for i in list_of_accounts:
+            # if cron, send all messages to all accounts
+            if passed_function == 'cron':
 
-                # Do rest of calls in list of regions
-                for b in list_of_regions:
-                    print(
-                        f'sending function: {passed_function} in account: {i} into region: {b}')
+                # Organizations only needs source_account
+                send_sqs_message(accountNumber=source_account,
+                                 function='org', region='us-east-1')
+
+                for i in list_of_accounts:
+
+                    # Global API, don't hit each region
                     send_sqs_message(
-                        accountNumber=i, function=passed_function, region=b)
+                        accountNumber=i, function='iam-roles', region='us-east-1')
+                    send_sqs_message(
+                        accountNumber=i, function='iam-users', region='us-east-1')
+                    send_sqs_message(
+                        accountNumber=i, function='iam-attached-policys', region='us-east-1')
+                    send_sqs_message(
+                        accountNumber=i, function='s3-buckets', region='us-east-1')
 
-        # Reply back
-        return reply(message='sucessfully passed message to sqs', status_code=200)
+                    for b in list_of_regions:
+
+                        print(
+                            f'cron passed: {passed_function} in account: {i} into region: {b}')
+                        send_sqs_message(
+                            accountNumber=i, function='lambda', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='ec2', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='rds', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='odcr', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='lightsail', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='vpc', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='network-interfaces', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='subnet', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='ri', region=b)
+
+            # if function is organizations
+            elif passed_function == 'org':
+                send_sqs_message(accountNumber=source_account,
+                                 function='org', region='us-east-1')
+
+            # if function is global and doesn't need each region
+            elif passed_function in global_api:
+                for i in list_of_accounts:
+                    send_sqs_message(
+                        accountNumber=i, function=passed_function, region='us-east-1')
+
+            # Else send the function to all accounts
+            else:
+
+                for i in list_of_accounts:
+
+                    # Do rest of calls in list of regions
+                    for b in list_of_regions:
+                        print(
+                            f'sending function: {passed_function} in account: {i} into region: {b}')
+                        send_sqs_message(
+                            accountNumber=i, function=passed_function, region=b)
+
+            # Reply back
+            return reply(message='successfully passed message to sqs', status_code=200)
 
     except ClientError as e:
         print('Unexpected error: %s' % e)

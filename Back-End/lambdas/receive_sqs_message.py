@@ -754,7 +754,7 @@ def reply(message, status_code):
 
 
 # Logic to compare what current boto see's vs whats in dynamodb
-def compare_and_update_function(account_number, region, sqs_fun, cross_account_role):
+def compare_and_update_function(account_number, region, sqs_function, cross_account_role):
     print('printing event....')
 
     # init
@@ -763,57 +763,58 @@ def compare_and_update_function(account_number, region, sqs_fun, cross_account_r
     pop_dynamo = []
 
     # Get Current Boto Data
-    if sqs_fun == 'lambda':
+    if sqs_function == 'lambda':
         current_boto_list = get_all_lambda(
             account_number, region, cross_account_role)
-    if sqs_fun == 'ec2':
+    elif sqs_function == 'ec2':
         current_boto_list = get_all_ec2(
             account_number, region, cross_account_role)
-    if sqs_fun == 'rds':
+    elif sqs_function == 'rds':
         current_boto_list = get_all_rds(
             account_number, region, cross_account_role)
-    if sqs_fun == 'iam-roles':
+    elif sqs_function == 'iam-roles':
         current_boto_list = get_all_iam_roles(
             account_number, 'us-east-1', cross_account_role)
-    if sqs_fun == 'iam-users':
+    elif sqs_function == 'iam-users':
         current_boto_list = get_all_iam_users(
             account_number, 'us-east-1', cross_account_role)
-    if sqs_fun == 'iam-attached-policys':
+    elif sqs_function == 'iam-attached-policys':
         current_boto_list = get_all_iam_attached_policys(
             account_number, 'us-east-1', cross_account_role)
-    if sqs_fun == 'odcr':
+    elif sqs_function == 'odcr':
         current_boto_list = get_all_odcr(
             account_number, region, cross_account_role)
-    if sqs_fun == 'lightsail':
+    elif sqs_function == 'lightsail':
         current_boto_list = get_all_lightsail(
             account_number, region, cross_account_role)
-    if sqs_fun == 'org':
+    elif sqs_function == 'org':
         current_boto_list = get_organizations(
             account_number, region, cross_account_role)
-    if sqs_fun == 'vpc':
+    elif sqs_function == 'vpc':
         current_boto_list = get_all_vpc(
             account_number, region, cross_account_role)
-    if sqs_fun == 'network-interfaces':
+    elif sqs_function == 'network-interfaces':
         current_boto_list = get_all_network_interfaces(
             account_number, region, cross_account_role)
-    if sqs_fun == 'subnet':
+    elif sqs_function == 'subnet':
         current_boto_list = get_all_subnets(
             account_number, region, cross_account_role)
-    if sqs_fun == 'ri':
+    elif sqs_function == 'ri':
         current_boto_list = get_all_ris(
             account_number, region, cross_account_role)
-    if sqs_fun == 's3-buckets':
+    elif sqs_function == 's3-buckets':
         current_boto_list = get_all_s3_buckets(
             account_number, 'us-east-1', cross_account_role)
 
     # Get current data sitting in Dynamo and remove inactive entries
-    if sqs_fun == 'org':
+    elif sqs_function == 'org':
         dynamo_list = get_current_table_without_account(
-            entry_type=sqs_fun, region='us-east-1')
+            entry_type=sqs_function, region='us-east-1')
     else:
-        dynamo_list = get_current_table(
-            account_number=account_number, entry_type=sqs_fun, region=region)
-
+        print(f'Invalid function passed: {sqs_function}')
+        raise ValueError(f'Invalid function passed: {sqs_function}')
+        
+        
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_list)
 
@@ -838,28 +839,28 @@ def lambda_handler(event, context):
     try:
         message = event['Records'][0]
         print(json.dumps(message))
-        function = message['messageAttributes']['Function']['stringValue']
+        sqs_function = message['messageAttributes']['Function']['stringValue']
         account_number = message['messageAttributes']['AccountNumber']['stringValue']
         region = message['messageAttributes']['Region']['stringValue']
         receipt_handle = event['Records'][0]['receiptHandle']
 
-        print(f'function passed is: {function}')
+        print(f'sqs_function passed is: {sqs_function}')
 
         # Try run each function
         try:
 
             # Lambda logic
             compare_and_update_function(
-                account_number, region, function, cross_account_role)
+                account_number, region, sqs_function, cross_account_role)
 
         except ClientError as e:
             print(
-                f'Error: with {function}, in account {account_number}, in region {region} - {e}')
+                f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
             failed_message = True
             raise e
         except Exception as e:
             print(
-                f'Error: with {function}, in account {account_number}, in region {region} - {e}')
+                f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
             failed_message = True
             raise e
 

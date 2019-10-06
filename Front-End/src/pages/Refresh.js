@@ -41,7 +41,7 @@ class Refresh extends React.Component {
             alert('Successful')
         }).catch(error => {
             console.log(error.response)
-            alert('You need to select an options: Failed: ' + error)
+            alert('Failed: ' + JSON.stringify(error.response.data))
         });
         });
       }
