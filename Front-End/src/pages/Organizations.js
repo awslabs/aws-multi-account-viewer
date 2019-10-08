@@ -75,6 +75,10 @@ export default class Organizations extends React.Component {
                 dataField: 'Arn',
                 text: 'Arn',
                 sort: true
+            },{
+                dataField: 'JoinedMethod',
+                text: 'JoinedMethod',
+                sort: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

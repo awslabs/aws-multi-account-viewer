@@ -74,7 +74,8 @@ export default class AllUsers extends React.Component {
             },{
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true
+                sort: true,
+                hidden: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

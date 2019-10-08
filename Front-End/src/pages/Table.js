@@ -1,8 +1,9 @@
 // Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import React, {Component} from 'react';
-import ToolkitProvider, {Search} from 'react-bootstrap-table2-toolkit';
+import React, { Component } from 'react';
+import { Row, Col } from 'reactstrap';
+import ToolkitProvider, { Search, ColumnToggle } from 'react-bootstrap-table2-toolkit';
 import BootstrapTable from 'react-bootstrap-table-next';
 import paginationFactory from 'react-bootstrap-table2-paginator';
 import overlayFactory from 'react-bootstrap-table2-overlay';
@@ -10,7 +11,8 @@ import filterFactory from 'react-bootstrap-table2-filter';
 import { Button } from 'react-bootstrap';
 
 //Const search bar using 'react-bootstrap-table2-toolkit' component
-const {SearchBar} = Search;
+const { SearchBar } = Search;
+const { ToggleList } = ColumnToggle;
 
 //Component class that renders a fully customized and responsive table using 'react-bootstrap-table2'
 export class Table extends Component {
@@ -26,7 +28,7 @@ export class Table extends Component {
         //Define pagination options
         const customTotal = (from, to, size) => (
             <span className="react-bootstrap-table-pagination-total">
-            Showing { from } to { to } of { size } Results
+                Showing {from} to {to} of {size} Results
             </span>
         );
 
@@ -70,10 +72,36 @@ export class Table extends Component {
             };
             return (
                 <div>
-                    <center><Button type="button" variant="outline-info" size="sm" onClick={ handleClick }> Refresh Page</Button></center>
+                    <center><Button type="button" variant="outline-info" size="sm" onClick={handleClick}> Refresh Page</Button></center>
                 </div>
             );
         };
+
+        const expandRow = {
+            renderer: row => (
+              <div>
+                <p>{ `This Expand row is belong to rowKey ${row.Id}` }</p>
+                <p>{ `Row Map: ${Object.values(row)}`}</p>
+              </div>
+            ),
+            showExpandColumn: true,
+            expandHeaderColumnRenderer: ({ isAnyExpands }) => {
+              if (isAnyExpands) {
+                return <b>-</b>;
+              }
+              return <b>+</b>;
+            },
+            expandColumnRenderer: ({ expanded }) => {
+              if (expanded) {
+                return (
+                  <b>-</b>
+                );
+              }
+              return (
+                <b>...</b>
+              );
+            }
+          };
 
         //Return a custom table with a search bar
         return (
@@ -81,16 +109,30 @@ export class Table extends Component {
                 keyField={this.props.id}
                 data={this.props.data}
                 columns={this.props.columns}
+                columnToggle
                 search
             >{props => (
                 <div>
-                    <RefreshPage { ...props.RefreshPage } />
-                    <MyExportCSV { ...props.csvProps } />
-                    <br /><SearchBar  {...props.searchProps}
-                                     className="custom-search-field"
-                                     placeholder={`Search ${this.props.search}`}/><br/>
+                    <Row><Col xs="auto">
+                        <b>Toggle Columns:  </b>
+                    <ToggleList 
+                        contextual="outline-info"
+                        className="list-custom-class"
+                        btnClassName="btn-sm"
+                                { ...props.columnToggleProps }/></Col></Row>      
+                    <br></br>
+                    <Row><Col xs="sm">
+                    <SearchBar  {...props.searchProps}
+                                     className="search-label"
+                                     type="text"
+                                     placeholder={`Search any ${this.props.search} across columns`}/></Col>
+                                     <Col xs="auto">
+                                     <RefreshPage { ...props.RefreshPage } /> </Col>
+                                     <Col xs="auto">
+                                     <MyExportCSV { ...props.csvProps } /></Col></Row>
                     <BootstrapTable defaultSorted={defaultSorted} {...props.baseProps} 
                                     pagination={paginationFactory(options)}
+                                    expandRow={ expandRow }
                                     // rowEvents={ rowEvents }
                                     // selectRow={selectRow}
                                     condensed={ true }

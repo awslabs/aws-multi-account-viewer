@@ -78,4 +78,4 @@ class Tags extends React.Component {
     }
 }
 
-export default Tags
+export default Tags;
