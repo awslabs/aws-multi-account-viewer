@@ -185,7 +185,7 @@ Resources:
   ReceiverDeadLetterQueue:
     Type: "AWS::SQS::Queue"
     Properties:
-      MessageRetentionPeriod: 86400 # 1 days in seconds
+      MessageRetentionPeriod: 3600 # 1 hour.
 
   LambdaFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -202,7 +202,7 @@ Resources:
       Handler: send_sqs_message.lambda_handler
       Runtime: python3.7
       MemorySize: 128
-      Timeout: 60
+      Timeout: 120
       Code:
         S3Bucket: !Ref LambdaBucketName
         S3Key: !Ref LambdaPackage
@@ -224,7 +224,7 @@ Resources:
       Handler: receive_sqs_message.lambda_handler
       Runtime: python3.7
       MemorySize: 128
-      Timeout: 30
+      Timeout: 120
       Code:
         S3Bucket: !Ref LambdaBucketName
         S3Key: !Ref LambdaPackage
@@ -245,7 +245,7 @@ Resources:
       Handler: list_table.lambda_handler
       Runtime: python3.7
       MemorySize: 128
-      Timeout: 30
+      Timeout: 45
       Code:
         S3Bucket: !Ref LambdaBucketName
         S3Key: !Ref LambdaPackage

@@ -70,7 +70,7 @@ export class Navigation extends Component {
               </NavDropdown>
 
               <NavLink href="/refresh">Refresh Checks</NavLink>
-              <NavLink href="/tags">Search Tags</NavLink>
+              <NavLink href="/tags">Test</NavLink>
             </Nav>
 
             <Nav>

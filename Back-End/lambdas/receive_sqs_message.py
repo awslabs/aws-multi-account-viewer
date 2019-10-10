@@ -389,7 +389,7 @@ def get_all_lightsail(account_number, region, cross_account_role):
                 {
                     'EntryType': 'lightsail',
                     'AccountNumber': str(account_number),
-                    'Region': str(region),
+                    'Region': 'us-east-1',
                     'AvailabilityZone': str(i['location']['availabilityZone']),
                     'Name': str(i['name']),
                     'CreateDate': str(i['createdAt']),
@@ -764,7 +764,7 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
             account_number, region, cross_account_role)
     elif sqs_function == 'lightsail':
         current_boto_list = get_all_lightsail(
-            account_number, region, cross_account_role)
+            account_number, 'us-east-1', cross_account_role)
     elif sqs_function == 'org':
         current_boto_list = get_organizations(
             account_number, region, cross_account_role)
