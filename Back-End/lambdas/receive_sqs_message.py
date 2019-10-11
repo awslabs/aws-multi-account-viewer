@@ -132,9 +132,9 @@ def get_all_lambda(account_number, region, cross_account_role):
                     'Timeout': str(i['Timeout']),
                     'RoleName': str(iam_role),
                     'Handler': str(i['Handler']),
-                    'CodeSize': str(i['CodeSize']),
+                    'CodeSize': int(i['CodeSize']),
                     'Version': str(i['Version']),
-                    'MemorySize': str(i['MemorySize']),
+                    'MemorySize': int(i['MemorySize']),
                     'LastModified': str(i['LastModified']),
                     'Tags': str(lambda_tag)
                 })
@@ -171,7 +171,7 @@ def get_all_rds(account_number, region, cross_account_role):
                     'State': str(i['DBInstanceStatus']),
                     'DBInstanceIdentifier': str(i['DBInstanceIdentifier']),
                     'DBInstanceClass': str(i['DBInstanceClass']),
-                    'AllocatedStorage': str(i.get('AllocatedStorage', ' ')),
+                    'AllocatedStorage': int(i.get('AllocatedStorage', ' ')),
                     'PreferredBackupWindow': str(i.get('PreferredBackupWindow', ' ')),
                     'BackupRetentionPeriod': str(i.get('BackupRetentionPeriod', ' ')),
                     'PreferredMaintenanceWindow': str(i.get('PreferredMaintenanceWindow', ' ')),
@@ -232,7 +232,7 @@ def get_all_ec2(account_number, region, cross_account_role):
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'vCPU': int(vCPU),
-                    'KeyName': i['Instances'][0].get('KeyName', ' '),
+                    'KeyName': str(i['Instances'][0].get('KeyName', ' '))   ,
                     'RoleName': str(iam_role),
                     'PrivateIpAddress': str(i['Instances'][0].get('PrivateIpAddress', ' ')),
                     'PublicIpAddress': str(i['Instances'][0].get('PublicIpAddress', ' ')),
@@ -351,9 +351,9 @@ def get_all_odcr(account_number, region, cross_account_role):
                         'AccountNumber': str(account_number),
                         'Region': str(region),
                         'AvailabilityZone': str(i['AvailabilityZone']),
-                        'AvailableInstanceCount': i['AvailableInstanceCount'],
+                        'AvailableInstanceCount': int(i['AvailableInstanceCount']),
                         'CapacityReservationId': str(i['CapacityReservationId']),
-                        'Qty Available': f"{i['AvailableInstanceCount']} of {i['TotalInstanceCount']}",
+                        'Qty Available': int(f"{i['AvailableInstanceCount']} of {i['TotalInstanceCount']}"),
                         'CreateDate': str(i['CreateDate']),
                         'EbsOptimized': str(i['EbsOptimized']),
                         'EndDateType': str(i['EndDateType']),
@@ -364,7 +364,7 @@ def get_all_odcr(account_number, region, cross_account_role):
                         'State': str(i['State']),
                         'Tags': str(i['Tags']),
                         'Tenancy': str(i['Tenancy']),
-                        'TotalInstanceCount': i['TotalInstanceCount']
+                        'TotalInstanceCount': int(i['TotalInstanceCount'])
                     })
 
     return var_list
@@ -394,9 +394,9 @@ def get_all_lightsail(account_number, region, cross_account_role):
                     'Name': str(i['name']),
                     'CreateDate': str(i['createdAt']),
                     'Blueprint': str(i['blueprintName']),
-                    'RAM in GB': str(i['hardware']['ramSizeInGb']),
-                    'vCPU': str(i['hardware']['cpuCount']),
-                    'SSD in GB': str(i['hardware']['disks'][0]['sizeInGb']),
+                    'RAM in GB': int(i['hardware']['ramSizeInGb']),
+                    'vCPU': int(i['hardware']['cpuCount']),
+                    'SSD in GB': int(i['hardware']['disks'][0]['sizeInGb']),
                     'Public IP': str(i['publicIpAddress'])
                 })
 
@@ -550,9 +550,9 @@ def get_all_ris(account_number, region, cross_account_role):
                 {
                     'EntryType': 'ri',
                     'AccountNumber': str(account_number),
-                    'InstanceCount': str(i['InstanceCount']),
+                    'InstanceCount': int(i['InstanceCount']),
                     'InstanceType': i['InstanceType'],
-                    'Scope': i['Scope'],
+                    'Scope': str(i['Scope']),
                     'ProductDescription': str(i['ProductDescription']),
                     'ReservedInstancesId': str(i['ReservedInstancesId']),
                     'Start': str(i['Start']),
