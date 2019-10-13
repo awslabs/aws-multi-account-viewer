@@ -90,7 +90,23 @@ export default class AllLambda extends React.Component {
             },{
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'Handler',
+                text: 'Handler',
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'CodeSize',
+                text: 'CodeSize',
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'Version',
+                text: 'Version',
+                sort: true,
+                hidden: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

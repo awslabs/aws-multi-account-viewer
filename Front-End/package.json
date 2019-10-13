@@ -18,7 +18,8 @@
     "react-bootstrap-table2-toolkit": "^1.4.1",
     "react-dom": "^16.8.6",
     "react-router-dom": "4.1.2",
-    "react-scripts": "^3.1.1"
+    "react-scripts": "^3.1.1",
+    "reactstrap": "^8.0.1"
   },
   "scripts": {
     "start": "react-scripts start",

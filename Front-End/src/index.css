@@ -7,9 +7,14 @@ body {
   font-family: sans-serif;
 }
 
-
 .form-refresh {
   width: 500px;
   margin: auto;
+}
+
+.form-control.search-label {
+  width: 300px;
+  margin: auto;
+  font-size: 15px;
 }
 

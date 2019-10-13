@@ -74,7 +74,8 @@ export default class AllVPCS extends React.Component {
             }, {
                 dataField: 'DhcpOptionsId',
                 text: 'DhcpOptionsId',
-                sort: true
+                sort: true,
+                hidden: true
             }, {
                 dataField: 'InstanceTenancy',
                 text: 'InstanceTenancy',
@@ -82,7 +83,8 @@ export default class AllVPCS extends React.Component {
             },{
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true
+                sort: true,
+                hidden: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

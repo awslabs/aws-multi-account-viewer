@@ -121,13 +121,6 @@ def get_all_lambda(account_number, region, cross_account_role):
             lambda_arn = i['FunctionArn']
             lambda_tag = client_lambda.list_tags(Resource=lambda_arn)['Tags']
 
-            # Turn Tags into Strings for Table format on front end
-            tag_str = ' '
-            if len(lambda_tag) >= 1:
-                tag_str = str(lambda_tag)
-            else:
-                tag_str = ' '
-
             var_list.append(
                 {
                     'EntryType': 'lambda',
@@ -138,9 +131,12 @@ def get_all_lambda(account_number, region, cross_account_role):
                     'AccountNumber': str(account_number),
                     'Timeout': str(i['Timeout']),
                     'RoleName': str(iam_role),
-                    'MemorySize': str(i['MemorySize']),
+                    'Handler': str(i['Handler']),
+                    'CodeSize': int(i['CodeSize']),
+                    'Version': str(i['Version']),
+                    'MemorySize': int(i['MemorySize']),
                     'LastModified': str(i['LastModified']),
-                    'Tags': str(tag_str)
+                    'Tags': str(lambda_tag)
                 })
 
     return var_list
@@ -167,36 +163,23 @@ def get_all_rds(account_number, region, cross_account_role):
             rds_tag = client_rds.list_tags_for_resource(
                 ResourceName=instance)['TagList']
 
-            # Turn Tags into Strings for Table format on front end
-            tag_str = ' '
-            if len(rds_tag) >= 1:
-                tag_str = str(rds_tag)
-            else:
-                tag_str = ' '
-
-            # # Turn Tags into Strings for Table format on front end
-            # tag_str = ' '
-            # if len(rds_tag) >= 1:
-            #     tag_str = ''
-            #     for z in rds_tag:
-            #         tag_str = tag_str + '--> '
-            #         for value in z.values():
-            #             tag_str = tag_str + '' + value + ' '
-            # else:
-            #     tag_str = ' '
-
             var_list.append(
                 {
                     'EntryType': 'rds',
                     'Region': str(region),
                     'AccountNumber': str(account_number),
                     'State': str(i['DBInstanceStatus']),
-                    'DBInstanceIdentifier': i['DBInstanceIdentifier'],
-                    'DBInstanceClass': i['DBInstanceClass'],
-                    'Engine': i['Engine'],
-                    'MultiAZ': i['MultiAZ'],
-                    'PubliclyAccessible': i['PubliclyAccessible'],
-                    'Tags': str(tag_str)
+                    'DBInstanceIdentifier': str(i['DBInstanceIdentifier']),
+                    'DBInstanceClass': str(i['DBInstanceClass']),
+                    'AllocatedStorage': int(i.get('AllocatedStorage', ' ')),
+                    'PreferredBackupWindow': str(i.get('PreferredBackupWindow', ' ')),
+                    'BackupRetentionPeriod': str(i.get('BackupRetentionPeriod', ' ')),
+                    'PreferredMaintenanceWindow': str(i.get('PreferredMaintenanceWindow', ' ')),
+                    'StorageType': str(i.get('StorageType', ' ')),
+                    'Engine': str(i['Engine']),
+                    'MultiAZ': str(i.get('MultiAZ', ' ')),
+                    'PubliclyAccessible': str(i.get('PubliclyAccessible', ' ')),
+                    'Tags': str(rds_tag)
                 })
 
     return var_list
@@ -239,28 +222,23 @@ def get_all_ec2(account_number, region, cross_account_role):
             vCPU = int(vcpu_core) * int(vcpu_thread)
 
             # Turn Tags into Strings for Table format on front end
-            tag_str = ' '
             ec2_tags = i['Instances'][0].get('Tags', ' ')
-            if len(ec2_tags) > 1:
-                tag_str = str(ec2_tags)
-            else:
-                tag_str = ' '
 
             var_list.append(
                 {
                     'EntryType': 'ec2',
-                    'InstanceId': i['Instances'][0]['InstanceId'],
-                    'State': i['Instances'][0]['State']['Name'],
+                    'InstanceId': str(i['Instances'][0]['InstanceId']),
+                    'State': str(i['Instances'][0]['State']['Name']),
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'vCPU': int(vCPU),
-                    'KeyName': i['Instances'][0].get('KeyName', ' '),
+                    'KeyName': str(i['Instances'][0].get('KeyName', ' '))   ,
                     'RoleName': str(iam_role),
-                    'PrivateIpAddress': i['Instances'][0].get('PrivateIpAddress', ' '),
-                    'PublicIpAddress': i['Instances'][0].get('PublicIpAddress', ' '),
-                    'InstancePlatform': i['Instances'][0].get('Platform', 'Linux/UNIX'),
-                    'InstanceType': i['Instances'][0]['InstanceType'],
-                    'Tags': str(tag_str)
+                    'PrivateIpAddress': str(i['Instances'][0].get('PrivateIpAddress', ' ')),
+                    'PublicIpAddress': str(i['Instances'][0].get('PublicIpAddress', ' ')),
+                    'InstancePlatform': str(i['Instances'][0].get('Platform', 'Linux/UNIX')),
+                    'InstanceType': str(i['Instances'][0]['InstanceType']),
+                    'Tags': str(ec2_tags)
                 })
 
     return var_list
@@ -287,7 +265,7 @@ def get_all_iam_roles(account_number, region, cross_account_role):
                     'EntryType': 'iam-roles',
                     'Region': 'us-east-1',
                     'AccountNumber': str(account_number),
-                    'RoleName': i['RoleName'],
+                    'RoleName': str(i['RoleName']),
                     'CreateDate': str(i['CreateDate'])
                 })
 
@@ -317,8 +295,7 @@ def get_all_iam_users(account_number, region, cross_account_role):
                     'Region': 'us-east-1',
                     'UserName': str(i['UserName']),
                     'PasswordLastUsed': str(i.get('PasswordLastUsed', ' ')),
-                    'CreateDate': str(i['CreateDate']),
-                    'Tags': str(i.get('Tags', ' '))
+                    'CreateDate': str(i['CreateDate'])
                 })
 
     return var_list
@@ -373,21 +350,21 @@ def get_all_odcr(account_number, region, cross_account_role):
                         'EntryType': 'odcr',
                         'AccountNumber': str(account_number),
                         'Region': str(region),
-                        'AvailabilityZone': i['AvailabilityZone'],
-                        'AvailableInstanceCount': i['AvailableInstanceCount'],
-                        'CapacityReservationId': i['CapacityReservationId'],
-                        'Qty Available': f"{i['AvailableInstanceCount']} of {i['TotalInstanceCount']}",
+                        'AvailabilityZone': str(i['AvailabilityZone']),
+                        'AvailableInstanceCount': int(i['AvailableInstanceCount']),
+                        'CapacityReservationId': str(i['CapacityReservationId']),
+                        'Qty Available': str(f"{i['AvailableInstanceCount']} of {i['TotalInstanceCount']}"),
                         'CreateDate': str(i['CreateDate']),
-                        'EbsOptimized': i['EbsOptimized'],
+                        'EbsOptimized': str(i['EbsOptimized']),
                         'EndDateType': str(i['EndDateType']),
-                        'EphemeralStorage': i['EphemeralStorage'],
-                        'InstanceMatchCriteria': i['InstanceMatchCriteria'],
-                        'InstancePlatform': i['InstancePlatform'],
-                        'InstanceType': i['InstanceType'],
-                        'State': i['State'],
-                        'Tags': i['Tags'],
-                        'Tenancy': i['Tenancy'],
-                        'TotalInstanceCount': i['TotalInstanceCount']
+                        'EphemeralStorage': str(i['EphemeralStorage']),
+                        'InstanceMatchCriteria': str(i['InstanceMatchCriteria']),
+                        'InstancePlatform': str(i['InstancePlatform']),
+                        'InstanceType': str(i['InstanceType']),
+                        'State': str(i['State']),
+                        'Tags': str(i['Tags']),
+                        'Tenancy': str(i['Tenancy']),
+                        'TotalInstanceCount': int(i['TotalInstanceCount'])
                     })
 
     return var_list
@@ -412,15 +389,15 @@ def get_all_lightsail(account_number, region, cross_account_role):
                 {
                     'EntryType': 'lightsail',
                     'AccountNumber': str(account_number),
-                    'Region': str(region),
+                    'Region': 'us-east-1',
                     'AvailabilityZone': str(i['location']['availabilityZone']),
                     'Name': str(i['name']),
                     'CreateDate': str(i['createdAt']),
                     'Blueprint': str(i['blueprintName']),
-                    'RAM in GB': str(i['hardware']['ramSizeInGb']),
-                    'vCPU': str(i['hardware']['cpuCount']),
-                    'SSD in GB': str(i['hardware']['disks'][0]['sizeInGb']),
-                    'Public IP': str(i['publicIpAddress']),
+                    'RAM in GB': int(i['hardware']['ramSizeInGb']),
+                    'vCPU': int(i['hardware']['cpuCount']),
+                    'SSD in GB': int(i['hardware']['disks'][0]['sizeInGb']),
+                    'Public IP': str(i['publicIpAddress'])
                 })
 
     return var_list
@@ -450,7 +427,8 @@ def get_organizations(account_number, region, cross_account_role):
                         'EntryType': 'org',
                         'Name': str(i['Name']),
                         'Email': str(i['Email']),
-                        'Status': i['Status']
+                        'Status': str(i['Status']),
+                        'JoinedMethod': str(i['JoinedMethod'])
                     })
 
     return var_list
@@ -478,8 +456,8 @@ def get_all_vpc(account_number, region, cross_account_role):
                     'Region': str(region),
                     'CidrBlock': str(i['CidrBlock']),
                     'VpcId': str(i['VpcId']),
-                    'DhcpOptionsId': i['DhcpOptionsId'],
-                    'InstanceTenancy': i['InstanceTenancy'],
+                    'DhcpOptionsId': str(i['DhcpOptionsId']),
+                    'InstanceTenancy': str(i['InstanceTenancy']),
                     'Tags': str(i.get('Tags', ' '))
                 })
 
@@ -539,8 +517,8 @@ def get_all_subnets(account_number, region, cross_account_role):
                 'AccountNumber': str(account_number),
                 'Region': region,
                 'CidrBlock': str(i['CidrBlock']),
-                'AvailabilityZone': i['AvailabilityZone'],
-                'AvailabilityZoneId': i['AvailabilityZoneId'],
+                'AvailabilityZone': str(i['AvailabilityZone']),
+                'AvailabilityZoneId': str(i['AvailabilityZoneId']),
                 'SubnetId': str(i['SubnetId']),
                 'VpcId': str(i['VpcId']),
                 'SubnetArn': str(i['SubnetArn']),
@@ -572,15 +550,15 @@ def get_all_ris(account_number, region, cross_account_role):
                 {
                     'EntryType': 'ri',
                     'AccountNumber': str(account_number),
-                    'InstanceCount': str(i['InstanceCount']),
+                    'InstanceCount': int(i['InstanceCount']),
                     'InstanceType': i['InstanceType'],
-                    'Scope': i['Scope'],
+                    'Scope': str(i['Scope']),
                     'ProductDescription': str(i['ProductDescription']),
                     'ReservedInstancesId': str(i['ReservedInstancesId']),
                     'Start': str(i['Start']),
                     'End': str(i['End']),
-                    'InstanceTenancy': i['InstanceTenancy'],
-                    'OfferingClass': i['OfferingClass']
+                    'InstanceTenancy': str(i['InstanceTenancy']),
+                    'OfferingClass': str(i['OfferingClass'])
                 })
 
     return var_list
@@ -754,7 +732,7 @@ def reply(message, status_code):
 
 
 # Logic to compare what current boto see's vs whats in dynamodb
-def compare_and_update_function(account_number, region, sqs_fun, cross_account_role):
+def compare_and_update_function(account_number, region, sqs_function, cross_account_role):
     print('printing event....')
 
     # init
@@ -763,56 +741,62 @@ def compare_and_update_function(account_number, region, sqs_fun, cross_account_r
     pop_dynamo = []
 
     # Get Current Boto Data
-    if sqs_fun == 'lambda':
+    if sqs_function == 'lambda':
         current_boto_list = get_all_lambda(
             account_number, region, cross_account_role)
-    if sqs_fun == 'ec2':
+    elif sqs_function == 'ec2':
         current_boto_list = get_all_ec2(
             account_number, region, cross_account_role)
-    if sqs_fun == 'rds':
+    elif sqs_function == 'rds':
         current_boto_list = get_all_rds(
             account_number, region, cross_account_role)
-    if sqs_fun == 'iam-roles':
+    elif sqs_function == 'iam-roles':
         current_boto_list = get_all_iam_roles(
             account_number, 'us-east-1', cross_account_role)
-    if sqs_fun == 'iam-users':
+    elif sqs_function == 'iam-users':
         current_boto_list = get_all_iam_users(
             account_number, 'us-east-1', cross_account_role)
-    if sqs_fun == 'iam-attached-policys':
+    elif sqs_function == 'iam-attached-policys':
         current_boto_list = get_all_iam_attached_policys(
             account_number, 'us-east-1', cross_account_role)
-    if sqs_fun == 'odcr':
+    elif sqs_function == 'odcr':
         current_boto_list = get_all_odcr(
             account_number, region, cross_account_role)
-    if sqs_fun == 'lightsail':
+    elif sqs_function == 'lightsail':
         current_boto_list = get_all_lightsail(
-            account_number, region, cross_account_role)
-    if sqs_fun == 'org':
+            account_number, 'us-east-1', cross_account_role)
+    elif sqs_function == 'org':
         current_boto_list = get_organizations(
             account_number, region, cross_account_role)
-    if sqs_fun == 'vpc':
+    elif sqs_function == 'vpc':
         current_boto_list = get_all_vpc(
             account_number, region, cross_account_role)
-    if sqs_fun == 'network-interfaces':
+    elif sqs_function == 'network-interfaces':
         current_boto_list = get_all_network_interfaces(
             account_number, region, cross_account_role)
-    if sqs_fun == 'subnet':
+    elif sqs_function == 'subnet':
         current_boto_list = get_all_subnets(
             account_number, region, cross_account_role)
-    if sqs_fun == 'ri':
+    elif sqs_function == 'ri':
         current_boto_list = get_all_ris(
             account_number, region, cross_account_role)
-    if sqs_fun == 's3-buckets':
+    elif sqs_function == 's3-buckets':
         current_boto_list = get_all_s3_buckets(
             account_number, 'us-east-1', cross_account_role)
+    elif sqs_function == 'org':
+        current_boto_list = get_organizations(
+            account_number, region, cross_account_role)
+    else:
+        print(f'Invalid function passed: {sqs_function}')
+        raise ValueError(f'Invalid function passed: {sqs_function}')
 
-    # Get current data sitting in Dynamo and remove inactive entries
-    if sqs_fun == 'org':
+    if sqs_function == 'org':
         dynamo_list = get_current_table_without_account(
-            entry_type=sqs_fun, region='us-east-1')
+            entry_type=sqs_function, region='us-east-1')
     else:
         dynamo_list = get_current_table(
-            account_number=account_number, entry_type=sqs_fun, region=region)
+            account_number=account_number, entry_type=sqs_function, region=region)
+
 
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_list)
@@ -838,28 +822,28 @@ def lambda_handler(event, context):
     try:
         message = event['Records'][0]
         print(json.dumps(message))
-        function = message['messageAttributes']['Function']['stringValue']
+        sqs_function = message['messageAttributes']['Function']['stringValue']
         account_number = message['messageAttributes']['AccountNumber']['stringValue']
         region = message['messageAttributes']['Region']['stringValue']
         receipt_handle = event['Records'][0]['receiptHandle']
 
-        print(f'function passed is: {function}')
+        print(f'sqs_function passed is: {sqs_function}')
 
         # Try run each function
         try:
 
             # Lambda logic
             compare_and_update_function(
-                account_number, region, function, cross_account_role)
+                account_number, region, sqs_function, cross_account_role)
 
         except ClientError as e:
             print(
-                f'Error: with {function}, in account {account_number}, in region {region} - {e}')
+                f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
             failed_message = True
             raise e
         except Exception as e:
             print(
-                f'Error: with {function}, in account {account_number}, in region {region} - {e}')
+                f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
             failed_message = True
             raise e
 

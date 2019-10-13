@@ -90,7 +90,33 @@ export default class AllRDS extends React.Component {
             },{
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'AllocatedStorage',
+                text: 'AllocatedStorage',
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'PreferredBackupWindow',
+                text: 'PreferredBackupWindow',
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'BackupRetentionPeriod',
+                text: 'BackupRetentionPeriod',
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'PreferredMaintenanceWindow',
+                text: 'PreferredMaintenanceWindow',
+                sort: true,
+                hidden: true
+            },{
+                dataField: 'StorageType',
+                text: 'StorageType',
+                sort: true,
+                hidden: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

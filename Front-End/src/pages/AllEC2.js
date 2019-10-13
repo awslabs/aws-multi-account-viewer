@@ -35,7 +35,7 @@ export default class AllEC2 extends React.Component {
             })
             .catch(error => {
                 this.setState({ error, isLoading: false })
-                console.log(error.response)
+                console.log(error.response) 
             });
     }
     render() {
@@ -55,6 +55,7 @@ export default class AllEC2 extends React.Component {
                 dataField: 'Id',
                 text: 'Id',
                 hidden: true,
+                csvExport: false
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
@@ -63,7 +64,7 @@ export default class AllEC2 extends React.Component {
                 dataField: 'Region',
                 text: 'Region',
                 sort: true
-            },{
+            }, {
                 dataField: 'vCPU',
                 text: 'vCPU',
                 sort: true
@@ -83,7 +84,7 @@ export default class AllEC2 extends React.Component {
                 dataField: 'State',
                 text: 'State',
                 sort: true
-            },{
+            }, {
                 dataField: 'PrivateIpAddress',
                 text: 'PrivateIpAddress',
                 sort: true
@@ -98,23 +99,25 @@ export default class AllEC2 extends React.Component {
             }, {
                 dataField: 'KeyName',
                 text: 'KeyName',
-                sort: true
-            },{
+                sort: true,
+                hidden: true
+            }, {
                 dataField: 'Tags',
                 text: 'Tags',
                 sort: true
             }]
+
         return (
-                <div className="default" style={{ padding: "20px", fontSize: "14px" }}>
-                    <center><h2>All EC2 Instances</h2></center>
-                    <br />
-                    <Table data={instances}
-                           columns={columns}
-                           loading={isLoading}
-                           id="Id"
-                           sort="AccountNumber"
-                           search="name"/>
-                </div>
-                )
+            <div className="default" style={{ padding: "20px", fontSize: "14px" }}>
+                <center><h2>All EC2 Instances</h2></center>
+                <br />
+                <Table data={instances}
+                    columns={columns}
+                    loading={isLoading}
+                    id="Id"
+                    sort="AccountNumber"
+                    search="name" />
+            </div>
+        )
     }
 }

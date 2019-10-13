@@ -17,6 +17,7 @@ import AllVpcs from './pages/AllVpcs';
 import AllNetworkInterfaces from './pages/AllNetworkInterfaces';
 import AllSubnets from './pages/AllSubnets';
 import Refresh from './pages/Refresh';
+import AllData from './pages/AllData';
 import AllUsers from './pages/AllUsers';
 import AllRoles from './pages/AllRoles';
 import AllAttachedPolicys from './pages/AllAttachedPolicys';
@@ -51,6 +52,7 @@ Amplify.configure({
   }
 });
 
+
 class App extends Component {
 
   render() {
@@ -69,6 +71,7 @@ class App extends Component {
           <Route path="/allnetworkinterfaces" component={AllNetworkInterfaces} />
           <Route path="/allsubnets" component={AllSubnets} />
           <Route path="/refresh" component={Refresh} />
+          <Route path="/alldata" component={AllData} />
           <Route path="/allusers" component={AllUsers} />
           <Route path="/allroles" component={AllRoles} />
           <Route path="/allattachedpolicys" component={AllAttachedPolicys} />
