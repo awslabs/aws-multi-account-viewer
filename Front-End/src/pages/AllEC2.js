@@ -35,7 +35,7 @@ export default class AllEC2 extends React.Component {
             })
             .catch(error => {
                 this.setState({ error, isLoading: false })
-                console.log(error.response)
+                console.log(error.response) 
             });
     }
     render() {
@@ -49,7 +49,6 @@ export default class AllEC2 extends React.Component {
         if (isLoading) {
             return <div className="default"><h1><center><br></br>Loading ...</center></h1></div>;
         }
-
 
         const columns = [
             {
@@ -105,8 +104,7 @@ export default class AllEC2 extends React.Component {
             }, {
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true,
-                hidden: true,
+                sort: true
             }]
 
         return (

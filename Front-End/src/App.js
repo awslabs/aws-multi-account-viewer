@@ -17,7 +17,7 @@ import AllVpcs from './pages/AllVpcs';
 import AllNetworkInterfaces from './pages/AllNetworkInterfaces';
 import AllSubnets from './pages/AllSubnets';
 import Refresh from './pages/Refresh';
-import Tags from './pages/Tags';
+import AllData from './pages/AllData';
 import AllUsers from './pages/AllUsers';
 import AllRoles from './pages/AllRoles';
 import AllAttachedPolicys from './pages/AllAttachedPolicys';
@@ -34,15 +34,15 @@ Amplify.configure({
     // REQUIRED - Amazon Cognito Region
     region: 'ap-southeast-2',
     // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: 'ap-southeast-2_YJfcv6i9e',
+    userPoolId: 'ap-southeast-2_UsrPlId',
     // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
-    userPoolWebClientId: '6a99kogc4jtekcidm11pqc8ifd'
+    userPoolWebClientId: '123usrPoolWebClientID456'
   },
   API: {
     endpoints: [
       {
         name: "MyAPIGatewayAPI",
-        endpoint: "https://9w4yy1a71i.execute-api.ap-southeast-2.amazonaws.com/prod",
+        endpoint: "https://abcd1234.execute-api.ap-southeast-2.amazonaws.com/prod",
         region: 'ap-southeast-2',
         custom_header: async () => {
           return { Authorization: (await Auth.currentSession()).idToken.jwtToken };
@@ -71,7 +71,7 @@ class App extends Component {
           <Route path="/allnetworkinterfaces" component={AllNetworkInterfaces} />
           <Route path="/allsubnets" component={AllSubnets} />
           <Route path="/refresh" component={Refresh} />
-          <Route path="/tags" component={Tags} />
+          <Route path="/alldata" component={AllData} />
           <Route path="/allusers" component={AllUsers} />
           <Route path="/allroles" component={AllRoles} />
           <Route path="/allattachedpolicys" component={AllAttachedPolicys} />

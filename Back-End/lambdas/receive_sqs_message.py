@@ -227,8 +227,8 @@ def get_all_ec2(account_number, region, cross_account_role):
             var_list.append(
                 {
                     'EntryType': 'ec2',
-                    'InstanceId': i['Instances'][0]['InstanceId'],
-                    'State': i['Instances'][0]['State']['Name'],
+                    'InstanceId': str(i['Instances'][0]['InstanceId']),
+                    'State': str(i['Instances'][0]['State']['Name']),
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'vCPU': int(vCPU),
@@ -353,7 +353,7 @@ def get_all_odcr(account_number, region, cross_account_role):
                         'AvailabilityZone': str(i['AvailabilityZone']),
                         'AvailableInstanceCount': int(i['AvailableInstanceCount']),
                         'CapacityReservationId': str(i['CapacityReservationId']),
-                        'Qty Available': int(f"{i['AvailableInstanceCount']} of {i['TotalInstanceCount']}"),
+                        'Qty Available': str(f"{i['AvailableInstanceCount']} of {i['TotalInstanceCount']}"),
                         'CreateDate': str(i['CreateDate']),
                         'EbsOptimized': str(i['EbsOptimized']),
                         'EndDateType': str(i['EndDateType']),

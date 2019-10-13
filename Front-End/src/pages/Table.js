@@ -80,8 +80,9 @@ export class Table extends Component {
         const expandRow = {
             renderer: row => (
               <div>
-                <p>{ `This Expand row is belong to rowKey ${row.Id}` }</p>
-                <p>{ `Row Map: ${Object.values(row)}`}</p>
+                  <pre>
+                { `${JSON.stringify(row, undefined, 2)}`}
+                </pre>
               </div>
             ),
             showExpandColumn: true,
@@ -113,7 +114,7 @@ export class Table extends Component {
                 search
             >{props => (
                 <div>
-                    <Row><Col xs="auto">
+                    <Row><Col xs="6">
                         <b>Toggle Columns:  </b>
                     <ToggleList 
                         contextual="outline-info"
