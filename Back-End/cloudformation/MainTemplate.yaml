@@ -93,6 +93,10 @@ Resources:
       ManagedPolicyArns: 
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/ReadOnlyAccess
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub "${AWS::StackName}-LambdaRole"
       Policies:
         - PolicyName: !Sub "${AWS::StackName}-LambdaDynamoDB"
           PolicyDocument:
@@ -150,6 +154,10 @@ Resources:
             Action:
               - "sts:AssumeRole"
       Path: "/"
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub "${AWS::StackName}-AutoScalingRole"
       Policies:
         -
           PolicyName: "root"
@@ -181,11 +189,19 @@ Resources:
             - ReceiverDeadLetterQueue
             - Arn
         maxReceiveCount: 1
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub "${AWS::StackName}-MainSQS"
   # Dead Letter
   ReceiverDeadLetterQueue:
     Type: "AWS::SQS::Queue"
     Properties:
       MessageRetentionPeriod: 3600 # 1 hour.
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub "${AWS::StackName}-DeadLetterSQS"
 
   LambdaFunctionEventSourceMapping:
     Type: AWS::Lambda::EventSourceMapping
@@ -217,6 +233,10 @@ Resources:
           ENV_REGIONS: !Ref Regions
           ENV_CROSS_ACCOUNT_ROLE: !Ref CrossAccountAccessRole
           ENV_SQSQUEUE: !Ref MyQueue
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub "${AWS::StackName}-SendFunction"
   
   LambdaReceiveSQSFunction:
     Type: AWS::Lambda::Function
@@ -238,6 +258,10 @@ Resources:
           ENV_CROSS_ACCOUNT_ROLE: !Ref CrossAccountAccessRole
           ENV_TABLE_NAME_MULTI: !Ref TableName
           ENV_SQSQUEUE: !Ref MyQueue
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub "${AWS::StackName}-ReceiveFunction"
 
   LambdaListTableFunction:
     Type: AWS::Lambda::Function
@@ -256,6 +280,10 @@ Resources:
         Variables:
           ENV_SOURCE_REGION: !Ref SourceRegion
           ENV_TABLE_NAME_MULTI: !Ref TableName
+      Tags: 
+        - 
+          Key: Name
+          Value: !Sub "${AWS::StackName}-ListTableFunction"
 
 # API Gateway Rest API
   MyRestApi:
@@ -429,7 +457,7 @@ Resources:
 
 # API Gateway Deployment
   ApiGatewayDeployment:
-    Type: 'AWS::ApiGateway::Deployment'
+    Type: AWS::ApiGateway::Deployment
     Properties:
       RestApiId: !Ref MyRestApi
       StageName: !Ref ApiGatewayStageName
@@ -529,6 +557,10 @@ Resources:
           ProvisionedThroughput:
             ReadCapacityUnits: 25
             WriteCapacityUnits: 25
+       Tags:
+         - 
+           Key: Name
+           Value: !Sub "${AWS::StackName}-DynamoDBTable"
 
   # DynamoDB Scaling
   UserTableWriteCapacityScalableTarget: 
