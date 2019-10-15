@@ -185,6 +185,43 @@ def get_all_rds(account_number, region, cross_account_role):
     return var_list
 
 
+# Get EKS Function
+def get_all_eks(account_number, region, cross_account_role):
+
+    # Init
+    var_list = []
+
+    # Change boto client
+    client_eks = create_boto_client(
+        account_number, region, 'eks', cross_account_role)
+
+    # Page all eks clusters
+    clusters = client_eks.list_clusters()
+    for i in clusters['clusters']:
+
+        eks_detail = client_eks.describe_cluster(name=i)['cluster']
+        cluster_tags = eks_detail['arn']
+        eks_tags = client_eks.list_tags_for_resource(resourceArn=cluster_tags)['tags']
+
+        var_list.append({
+            'AccountNumber': str(account_number),
+            'EntryType': str('eks'),
+            'Region': str(region),
+            'Name': str(eks_detail['name']),
+            'Arn': str(eks_detail['arn']),
+            'Status': str(eks_detail['status']),
+            'RoleArn': str(eks_detail.get('roleArn', ' ')),
+            'Created': str(eks_detail['createdAt']),
+            'VpcId': str(eks_detail['resourcesVpcConfig'].get('vpcId', ' ')),
+            'PlatformVersion': str(eks_detail['platformVersion']),
+            'K8 Version': str(eks_detail['version']),
+            'Endpoint': str(eks_detail['endpoint']),
+            'Tags': str(eks_tags)
+        })
+
+    return var_list
+
+
 # Get EC2 Function
 def get_all_ec2(account_number, region, cross_account_role):
 
@@ -747,6 +784,9 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
     elif sqs_function == 'ec2':
         current_boto_list = get_all_ec2(
             account_number, region, cross_account_role)
+    elif sqs_function == 'eks':
+        current_boto_list = get_all_eks(
+            account_number, region, cross_account_role)
     elif sqs_function == 'rds':
         current_boto_list = get_all_rds(
             account_number, region, cross_account_role)
@@ -796,7 +836,6 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
     else:
         dynamo_list = get_current_table(
             account_number=account_number, entry_type=sqs_function, region=region)
-
 
     # Deep copy instead of double dynamo read
     pop_dynamo = copy.deepcopy(dynamo_list)

@@ -116,6 +116,7 @@ def lambda_handler(event, context):
             'network-interfaces',
             'vpc',
             'ri',
+            'eks',
             'testpass'
         ]
 
@@ -153,6 +154,8 @@ def lambda_handler(event, context):
                             accountNumber=i, function='lambda', region=b)
                         send_sqs_message(
                             accountNumber=i, function='ec2', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='eks', region=b)
                         send_sqs_message(
                             accountNumber=i, function='rds', region=b)
                         send_sqs_message(
