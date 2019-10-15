@@ -38,6 +38,7 @@ export class Navigation extends Component {
                 <NavDropdown.Item href="/allec2">View All EC2 Instances</NavDropdown.Item>
                 <NavDropdown.Item href="/allris">View All RIs</NavDropdown.Item>
                 <NavDropdown.Item href="/allodcr">View All ODCRs</NavDropdown.Item>
+                <NavDropdown.Item href="/alleks">View All EKS</NavDropdown.Item>
                 <NavDropdown.Item href="/alllightsail">View All Lightsail Instances</NavDropdown.Item>
               </NavDropdown>
 

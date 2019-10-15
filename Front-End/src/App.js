@@ -9,6 +9,7 @@ import MyTheme from "./components/AmplifyTheme";
 import { Home } from './pages/Home';
 import { Navigation } from './components/Navigation';
 import AllEC2 from './pages/AllEC2';
+import AllEKS from './pages/AllEKS';
 import AllRDS from './pages/AllRDS';
 import AllODCR from './pages/AllODCR';
 import AllRis from './pages/AllRis';
@@ -62,6 +63,7 @@ class App extends Component {
           <Navigation />
           <Route exact path="/" component={Home} />
           <Route path="/allec2" component={AllEC2} />
+          <Route path="/alleks" component={AllEKS} />
           <Route path="/alllambda" component={AllLambda} />
           <Route path="/Table" component={Table} />
           <Route path="/allodcr" component={AllODCR} />
