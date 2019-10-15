@@ -13,7 +13,7 @@ Serverless app designed for any customer with two or more accounts to view resou
 Current working examples are:
 
 - All AWS Accounts in Organizations
-- All EC2, Lambdas, ODCR, EC2 Reserved Instances, RDS
+- All EC2, Lambdas, ODCR, EC2 Reserved Instances, RDS, EKS
 - All IAM Users, Roles, Policy’s
 - All VPCs, Subnets
 - All S3 Buckets
