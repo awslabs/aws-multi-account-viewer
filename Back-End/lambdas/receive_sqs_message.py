@@ -269,7 +269,7 @@ def get_all_ec2(account_number, region, cross_account_role):
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'vCPU': int(vCPU),
-                    'KeyName': str(i['Instances'][0].get('KeyName', ' '))   ,
+                    'KeyName': str(i['Instances'][0].get('KeyName', ' ')),
                     'RoleName': str(iam_role),
                     'PrivateIpAddress': str(i['Instances'][0].get('PrivateIpAddress', ' ')),
                     'PublicIpAddress': str(i['Instances'][0].get('PublicIpAddress', ' ')),
@@ -426,7 +426,7 @@ def get_all_lightsail(account_number, region, cross_account_role):
                 {
                     'EntryType': 'lightsail',
                     'AccountNumber': str(account_number),
-                    'Region': 'us-east-1',
+                    'Region': str(region),
                     'AvailabilityZone': str(i['location']['availabilityZone']),
                     'Name': str(i['name']),
                     'CreateDate': str(i['createdAt']),
@@ -588,7 +588,7 @@ def get_all_ris(account_number, region, cross_account_role):
                     'EntryType': 'ri',
                     'AccountNumber': str(account_number),
                     'InstanceCount': int(i['InstanceCount']),
-                    'InstanceType': i['InstanceType'],
+                    'InstanceType': str(i['InstanceType']),
                     'Scope': str(i['Scope']),
                     'ProductDescription': str(i['ProductDescription']),
                     'ReservedInstancesId': str(i['ReservedInstancesId']),
@@ -804,7 +804,7 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
             account_number, region, cross_account_role)
     elif sqs_function == 'lightsail':
         current_boto_list = get_all_lightsail(
-            account_number, 'us-east-1', cross_account_role)
+            account_number, region, cross_account_role)
     elif sqs_function == 'org':
         current_boto_list = get_organizations(
             account_number, region, cross_account_role)
@@ -878,13 +878,18 @@ def lambda_handler(event, context):
         except ClientError as e:
             print(
                 f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
-            failed_message = True
-            raise e
+            # If error permissions error in sub account skip but still log
+            if e.response['Error']['Code'] == "AccessDeniedException":
+                print('Permission Error')
+            else:
+                # raise e
+                print(f'{e}')
+
         except Exception as e:
             print(
                 f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
-            failed_message = True
-            raise e
+            # raise e
+            print(f'{e}')
 
     except ClientError as e:
         print(f'Error: on processing message, {e}')

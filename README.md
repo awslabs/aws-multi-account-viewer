@@ -13,12 +13,12 @@ Serverless app designed for any customer with two or more accounts to view resou
 Current working examples are:
 
 - All AWS Accounts in Organizations
-- All EC2, Lambdas, ODCR, EC2 Reserved Instances, RDS, EKS
+- All EC2, Lambdas, ODCR, EC2 Reserved Instances, RDS, EKS, Lightsail
 - All IAM Users, Roles, Policy’s
 - All VPCs, Subnets
 - All S3 Buckets
 - All Private and Public IP's
-- All EBS (in progress)
+- All Tags
 
 ## Demo
 
@@ -94,10 +94,10 @@ aws s3 cp functions.zip s3://your-unique-bucket-name
 
 #### CloudFormation Parameters
 
-Everyone's accounts and regions vary so this example is set to the free tier for DynamoDB, Start slowly and ramp up accounts/regions to see how many RCU's you will need.
+Everyone's accounts and regions vary so this example is set to the free tier for DynamoDB
+AutoScaling is configured for DynamoDB so it will between the 2 parameters you specifiy.
 
 - Update all the parameters to match your config/accounts/bucket in MainTemplate.yaml
-- DynamoDB is set to the free tier of 25 RCU/WCU (for large accounts/regions you will probably want this around 200+)
 - Deploy the CloudFormation template in the admin account once you have updated the paramaters
 - Once the CloudFormation has completed copy the details in the outputs:
     - __ApiGateWayEndPoint__
@@ -139,9 +139,9 @@ yarn start
 
 ## Adding New Services
 
-To add a new services, you need to updating 2 sqs lambdas and creating a new page in the Front-End. 
+To add a new services, see example for this git commit:
 
-- Example of adding a new service here [to-do]()
+- Example of adding a new service EKS here [EKS](https://github.com/awslabs/aws-multi-account-viewer/pull/10/files)
 
 
 ## Troubleshooting
@@ -173,10 +173,9 @@ fields @message
 ```
 ![](images/sample-exception.png)
 
-### Organizations tab is empty?
-- Organizations isn't part of the cron job that normally goes, you need to manually refresh it.
-- Go to Refresh Checks > Organizations > Send to SQS
-- You should now see Organizations populated.
+### Tables are empty?
+- Check SQS queue to see what services are failing
+- View CloudWatch Logs above across receive/send lambda's to see where the issue is.
 
 ## License Summary
 

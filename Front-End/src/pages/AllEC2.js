@@ -95,7 +95,8 @@ export default class AllEC2 extends React.Component {
             }, {
                 dataField: 'RoleName',
                 text: 'RoleName',
-                sort: true
+                sort: true,
+                hidden: true
             }, {
                 dataField: 'KeyName',
                 text: 'KeyName',
@@ -104,7 +105,8 @@ export default class AllEC2 extends React.Component {
             }, {
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true
+                sort: true,
+                hidden: true
             }]
 
         return (
