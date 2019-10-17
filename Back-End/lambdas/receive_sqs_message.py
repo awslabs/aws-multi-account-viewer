@@ -195,31 +195,35 @@ def get_all_eks(account_number, region, cross_account_role):
     client_eks = create_boto_client(
         account_number, region, 'eks', cross_account_role)
 
-    # Page all eks clusters
-    clusters = client_eks.list_clusters()
-    for i in clusters['clusters']:
+    # Get all eks clusters
+    paginator = client_eks.get_paginator('list_clusters')
 
-        eks_detail = client_eks.describe_cluster(name=i)['cluster']
-        cluster_tags = eks_detail['arn']
-        eks_tags = client_eks.list_tags_for_resource(resourceArn=cluster_tags)['tags']
+    for page in paginator.paginate():
+        for i in page['clusters']:
 
-        var_list.append({
-            'AccountNumber': str(account_number),
-            'EntryType': str('eks'),
-            'Region': str(region),
-            'Name': str(eks_detail['name']),
-            'Arn': str(eks_detail['arn']),
-            'Status': str(eks_detail['status']),
-            'RoleArn': str(eks_detail.get('roleArn', ' ')),
-            'Created': str(eks_detail['createdAt']),
-            'VpcId': str(eks_detail['resourcesVpcConfig'].get('vpcId', ' ')),
-            'PlatformVersion': str(eks_detail['platformVersion']),
-            'K8 Version': str(eks_detail['version']),
-            'Endpoint': str(eks_detail['endpoint']),
-            'Tags': str(eks_tags)
-        })
+            cluster_name = i
+            eks_detail = client_eks.describe_cluster(name=cluster_name)['cluster']
+            cluster_arn = eks_detail['arn']
+            eks_tags = client_eks.list_tags_for_resource(
+                resourceArn=cluster_arn)['tags']
 
-    return var_list
+            var_list.append({
+                'AccountNumber': str(account_number),
+                'EntryType': str('eks'),
+                'Region': str(region),
+                'Name': str(eks_detail['name']),
+                'Arn': str(eks_detail['arn']),
+                'Status': str(eks_detail['status']),
+                'RoleArn': str(eks_detail.get('roleArn', ' ')),
+                'Created': str(eks_detail['createdAt']),
+                'VpcId': str(eks_detail['resourcesVpcConfig'].get('vpcId', ' ')),
+                'PlatformVersion': str(eks_detail['platformVersion']),
+                'K8 Version': str(eks_detail['version']),
+                'Endpoint': str(eks_detail['endpoint']),
+                'Tags': str(eks_tags)
+            })
+
+        return var_list
 
 
 # Get EC2 Function
@@ -777,72 +781,79 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
     dynamo_list = []
     pop_dynamo = []
 
-    # Get Current Boto Data
-    if sqs_function == 'lambda':
-        current_boto_list = get_all_lambda(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'ec2':
-        current_boto_list = get_all_ec2(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'eks':
-        current_boto_list = get_all_eks(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'rds':
-        current_boto_list = get_all_rds(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'iam-roles':
-        current_boto_list = get_all_iam_roles(
-            account_number, 'us-east-1', cross_account_role)
-    elif sqs_function == 'iam-users':
-        current_boto_list = get_all_iam_users(
-            account_number, 'us-east-1', cross_account_role)
-    elif sqs_function == 'iam-attached-policys':
-        current_boto_list = get_all_iam_attached_policys(
-            account_number, 'us-east-1', cross_account_role)
-    elif sqs_function == 'odcr':
-        current_boto_list = get_all_odcr(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'lightsail':
-        current_boto_list = get_all_lightsail(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'org':
-        current_boto_list = get_organizations(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'vpc':
-        current_boto_list = get_all_vpc(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'network-interfaces':
-        current_boto_list = get_all_network_interfaces(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'subnet':
-        current_boto_list = get_all_subnets(
-            account_number, region, cross_account_role)
-    elif sqs_function == 'ri':
-        current_boto_list = get_all_ris(
-            account_number, region, cross_account_role)
-    elif sqs_function == 's3-buckets':
-        current_boto_list = get_all_s3_buckets(
-            account_number, 'us-east-1', cross_account_role)
-    elif sqs_function == 'org':
-        current_boto_list = get_organizations(
-            account_number, region, cross_account_role)
-    else:
-        print(f'Invalid function passed: {sqs_function}')
-        raise ValueError(f'Invalid function passed: {sqs_function}')
+    try:
 
-    if sqs_function == 'org':
-        dynamo_list = get_current_table_without_account(
-            entry_type=sqs_function, region='us-east-1')
-    else:
-        dynamo_list = get_current_table(
-            account_number=account_number, entry_type=sqs_function, region=region)
+        # Get Current Boto Data
+        if sqs_function == 'lambda':
+            current_boto_list = get_all_lambda(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'ec2':
+            current_boto_list = get_all_ec2(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'eks':
+            current_boto_list = get_all_eks(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'rds':
+            current_boto_list = get_all_rds(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'iam-roles':
+            current_boto_list = get_all_iam_roles(
+                account_number, 'us-east-1', cross_account_role)
+        elif sqs_function == 'iam-users':
+            current_boto_list = get_all_iam_users(
+                account_number, 'us-east-1', cross_account_role)
+        elif sqs_function == 'iam-attached-policys':
+            current_boto_list = get_all_iam_attached_policys(
+                account_number, 'us-east-1', cross_account_role)
+        elif sqs_function == 'odcr':
+            current_boto_list = get_all_odcr(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'lightsail':
+            current_boto_list = get_all_lightsail(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'org':
+            current_boto_list = get_organizations(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'vpc':
+            current_boto_list = get_all_vpc(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'network-interfaces':
+            current_boto_list = get_all_network_interfaces(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'subnet':
+            current_boto_list = get_all_subnets(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'ri':
+            current_boto_list = get_all_ris(
+                account_number, region, cross_account_role)
+        elif sqs_function == 's3-buckets':
+            current_boto_list = get_all_s3_buckets(
+                account_number, 'us-east-1', cross_account_role)
+        elif sqs_function == 'org':
+            current_boto_list = get_organizations(
+                account_number, region, cross_account_role)
+        else:
+            print(f'Invalid function passed: {sqs_function}')
+            raise ValueError(f'Invalid function passed: {sqs_function}')
 
-    # Deep copy instead of double dynamo read
-    pop_dynamo = copy.deepcopy(dynamo_list)
+        if sqs_function == 'org':
+            dynamo_list = get_current_table_without_account(
+                entry_type=sqs_function, region='us-east-1')
+        else:
+            dynamo_list = get_current_table(
+                account_number=account_number, entry_type=sqs_function, region=region)
 
-    # remove Id key from dynamodb item and check if value has changed.
-    compare_lists_and_update(
-        boto_list=current_boto_list, dynamo_list=dynamo_list, pop_list=pop_dynamo)
+        # Deep copy instead of double dynamo read
+        pop_dynamo = copy.deepcopy(dynamo_list)
+
+        # remove Id key from dynamodb item and check if value has changed.
+        compare_lists_and_update(
+            boto_list=current_boto_list, dynamo_list=dynamo_list, pop_list=pop_dynamo)
+
+    except ClientError as e:
+        print(f'Error: {sqs_function} in {account_number} in {region} - {e}')
+    except Exception as e:
+        print(f'Error: {sqs_function} in {account_number} in {region} - {e}')
 
 
 # Default Lambda
@@ -878,27 +889,16 @@ def lambda_handler(event, context):
         except ClientError as e:
             print(
                 f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
-            # If error permissions error in sub account skip but still log
-            if e.response['Error']['Code'] == "AccessDeniedException":
-                print('Permission Error')
-            else:
-                # raise e
-                print(f'{e}')
-
         except Exception as e:
             print(
                 f'Error: with {sqs_function}, in account {account_number}, in region {region} - {e}')
-            # raise e
-            print(f'{e}')
 
     except ClientError as e:
         print(f'Error: on processing message, {e}')
         failed_message = True
-        raise e
     except Exception as e:
         print(f'Error: on processing message, {e}')
         failed_message = True
-        raise e
 
     # message must have passed, deleting
     if failed_message is False:

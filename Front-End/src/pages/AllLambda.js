@@ -82,7 +82,8 @@ export default class AllLambda extends React.Component {
             }, {
                 dataField: 'RoleName',
                 text: 'RoleName',
-                sort: true
+                sort: true,
+                hidden: true
             }, {
                 dataField: 'LastModified',
                 text: 'LastModified',
