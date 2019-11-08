@@ -203,9 +203,9 @@ def get_all_eks(account_number, region, cross_account_role):
 
             cluster_name = i
             eks_detail = client_eks.describe_cluster(name=cluster_name)['cluster']
-            cluster_arn = eks_detail['arn']
-            eks_tags = client_eks.list_tags_for_resource(
-                resourceArn=cluster_arn)['tags']
+            # cluster_arn = eks_detail['arn']
+            # eks_tags = client_eks.list_tags_for_resource(
+            #     resourceArn=cluster_arn)['tags']
 
             var_list.append({
                 'AccountNumber': str(account_number),
@@ -219,8 +219,8 @@ def get_all_eks(account_number, region, cross_account_role):
                 'VpcId': str(eks_detail['resourcesVpcConfig'].get('vpcId', ' ')),
                 'PlatformVersion': str(eks_detail['platformVersion']),
                 'K8 Version': str(eks_detail['version']),
-                'Endpoint': str(eks_detail['endpoint']),
-                'Tags': str(eks_tags)
+                'Endpoint': str(eks_detail['endpoint'])
+                # 'Tags': str(eks_tags)
             })
 
         return var_list
