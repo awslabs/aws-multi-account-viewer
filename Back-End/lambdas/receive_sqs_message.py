@@ -203,9 +203,9 @@ def get_all_eks(account_number, region, cross_account_role):
 
             cluster_name = i
             eks_detail = client_eks.describe_cluster(name=cluster_name)['cluster']
-            cluster_arn = eks_detail['arn']
-            eks_tags = client_eks.list_tags_for_resource(
-                resourceArn=cluster_arn)['tags']
+            # cluster_arn = eks_detail['arn']
+            # eks_tags = client_eks.list_tags_for_resource(
+            #     resourceArn=cluster_arn)['tags']
 
             var_list.append({
                 'AccountNumber': str(account_number),
@@ -219,8 +219,8 @@ def get_all_eks(account_number, region, cross_account_role):
                 'VpcId': str(eks_detail['resourcesVpcConfig'].get('vpcId', ' ')),
                 'PlatformVersion': str(eks_detail['platformVersion']),
                 'K8 Version': str(eks_detail['version']),
-                'Endpoint': str(eks_detail['endpoint']),
-                'Tags': str(eks_tags)
+                'Endpoint': str(eks_detail['endpoint'])
+                # 'Tags': str(eks_tags)
             })
 
         return var_list
@@ -757,31 +757,15 @@ def compare_lists_and_update(boto_list, dynamo_list, pop_list):
         print('list empty, skipping')
 
 
-# Reply message
-def reply(message, status_code):
-
-    return {
-        'statusCode': str(status_code),
-        'body': json.dumps(message, cls=DecimalEncoder),
-        'headers': {
-            'Content-Type': 'application/json',
-            'Access-Control-Allow-Credentials': 'true',
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Headers': 'Origin, X-Requested-With, Content-Type, Accept'
-        },
-    }
-
-
 # Logic to compare what current boto see's vs whats in dynamodb
 def compare_and_update_function(account_number, region, sqs_function, cross_account_role):
     print('printing event....')
 
-    # init
-    current_boto_list = []
-    dynamo_list = []
-    pop_dynamo = []
-
     try:
+        # init
+        current_boto_list = []
+        dynamo_list = []
+        pop_dynamo = []
 
         # Get Current Boto Data
         if sqs_function == 'lambda':
