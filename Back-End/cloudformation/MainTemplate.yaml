@@ -655,9 +655,17 @@ Resources:
 Outputs:
   UserPoolId: 
     Value: !Ref CognitoUserPool
+    Export:
+      Name: CognitoUserPool
   userPoolWebClientId:
     Value: !Ref CognitoUserPoolClient
+    Export:
+      Name: CognitoUserPoolClient
   ApiGateWayEndPoint:
     Value: !Sub "https://${MyRestApi}.execute-api.${AWS::Region}.amazonaws.com/${ApiGatewayStageName}"
+    Export:
+      Name: ApiGateWayEndPoint
   SQSEndpoint:
     Value: !Ref MyQueue
+    Export:
+      Name: SQSEndpoint
