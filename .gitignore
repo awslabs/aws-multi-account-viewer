@@ -1,6 +1,9 @@
 # Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
 
+# backup file in app.js
+*App-backup.js
+
 #amplify
 amplify/\#current-cloud-backend
 amplify/.config/local-*

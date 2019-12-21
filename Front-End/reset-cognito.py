@@ -5,22 +5,9 @@ import os
 import boto3
 import shutil
 
-STACK_NAME = 'Multi-Account-Demo'
-
-client = boto3.client('cloudformation')
-response = client.describe_stacks(StackName=STACK_NAME)
-
-# Grab Outputs
-all_outputs = response['Stacks'][0]['Outputs']
-
-# Grab Outputs from Cloudformation
-for i in all_outputs:
-    if i['ExportName'] == 'CognitoUserPool':
-        export_userpool = i['OutputValue']
-    if i['ExportName'] == 'CognitoUserPoolClient':
-        export_userpoolclient = i['OutputValue']
-    if i['ExportName'] == 'ApiGateWayEndPoint':
-        export_apigateway = i['OutputValue']
+export_userpool = 'ap-southeast-2_UsrPlId'
+export_userpoolclient = '123usrPoolWebClientID456'
+export_apigateway = 'https://abcd1234.execute-api.ap-southeast-2.amazonaws.com/prod'
 
 # Create backup before trying to modify
 shutil.copyfile('src/App.js', 'src/App-backup.js')
