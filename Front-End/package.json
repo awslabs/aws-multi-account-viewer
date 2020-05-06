@@ -7,7 +7,7 @@
     "aws-amplify-react": "^2.3.3",
     "bootstrap": "^4.3.1",
     "datatables.net": "^1.10.19",
-    "jquery": "^3.3.1",
+    "jquery": "^3.5.0",
     "react": "^16.8.6",
     "react-bootstrap": "^1.0.0-beta.8",
     "react-bootstrap-table": "^4.3.1",
