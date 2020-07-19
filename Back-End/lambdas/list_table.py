@@ -63,9 +63,9 @@ def scan_table():
             current_items = table.scan(
                 ExclusiveStartKey=current_items['LastEvaluatedKey'],
                 Select='ALL_ATTRIBUTES')
-            data.update(current_items['Items'])
+            data.extend(current_items['Items'])
 
-        return current_items['Items']
+        return data
 
     except ClientError as e:
         print('failed to scan dynamodb table...')
@@ -87,9 +87,9 @@ def query_table(entry_type):
                 IndexName='EntryType-index',
                 ExclusiveStartKey=current_items['LastEvaluatedKey'],
                 KeyConditionExpression=Key('EntryType').eq(entry_type))
-            data.update(current_items['Items'])
+            data.extend(current_items['Items'])
 
-        return current_items['Items']
+        return data
 
     except ClientError as e:
         print('failed to query dynamodb table...')

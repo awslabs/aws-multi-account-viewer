@@ -1,14 +1,17 @@
-<h1 align="center">
-<img src="images/frontpage.png"></a>
-</h1>
+## Multi Account Viewer
 
-![](https://github.com/awslabs/aws-multi-account-viewer/workflows/Front-End%20Build/badge.svg)
-![](https://github.com/awslabs/aws-multi-account-viewer/workflows/Back-End%20Build/badge.svg)
+![](https://github.com/kyhau/aws-multi-account-viewer/workflows/Front-End%20Build/badge.svg)
+![](https://github.com/kyhau/aws-multi-account-viewer/workflows/Back-End%20Build/badge.svg)
 
+Notes:
+- This repo is forked from [awslabs/aws-multi-account-viewer](https://github.com/awslabs/aws-multi-account-viewer).
+- See [Release Notes](ReleaseNotes.md) for the changes and addition features.
+
+---
 Serverless app designed for any customer with two or more accounts to view resources across accounts/regions in simple single pane of glass website. It's split into 2 customizable parts:
 
 - Back-End (CloudFormation templates and Python Lambdas)
-- Front-End (React with Amplify)
+- Front-End (CloudFormation templates and React with Amplify)
 
 Current working examples are:
 

@@ -84,8 +84,20 @@ export default class AllNetworkInterfaces extends React.Component {
                 text: 'InterfaceType',
                 sort: true
             }, {
-                dataField: 'NetworkInterfaceId',
+                dataField: 'Id',
                 text: 'NetworkInterfaceId',
+                sort: true
+            }, {
+                dataField: 'SubnetId',
+                text: 'SubnetId',
+                sort: true
+            }, {
+                dataField: 'VpcId',
+                text: 'VpcId',
+                sort: true
+            }, {
+                dataField: 'CidrBlock',
+                text: 'CidrBlock',
                 sort: true
             }, {
                 dataField: 'Description',

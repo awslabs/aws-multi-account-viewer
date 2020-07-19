@@ -76,7 +76,7 @@ export default class AllODCR extends React.Component {
                 text: 'InstancePlatform',
                 sort: true
             }, {
-                dataField: 'CapacityReservationId',
+                dataField: 'Id',
                 text: 'CapacityReservationId',
                 sort: true
             }, {

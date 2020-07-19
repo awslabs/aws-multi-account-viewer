@@ -64,7 +64,7 @@ export default class AllVPCS extends React.Component {
                 text: 'Region',
                 sort: true
             },{
-                dataField: 'VpcId',
+                dataField: 'Id',
                 text: 'VpcId',
                 sort: true
             }, {

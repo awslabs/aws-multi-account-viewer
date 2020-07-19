@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Create a Cognito User Pool and a Cognito User Pool Client.
+
+Parameters:
+  UserPoolName:
+    Type: String
+    Description: Cognito User Pool Name
+
+Resources:
+  # Cognito User pool
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Ref UserPoolName
+      AliasAttributes:
+        - 'email'
+      AutoVerifiedAttributes:
+        - 'email'
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: true
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 14
+          RequireLowercase: true
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: true
+
+  # Cognito Client
+  CognitoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub ${AWS::StackName}_UserPoolClient
+      UserPoolId: !Ref CognitoUserPool
+
+Outputs:
+  UserPoolId:
+    Value: !Ref CognitoUserPool
+    Export:
+      Name: CognitoUserPool
+  UserPoolWebClientId:
+    Value: !Ref CognitoUserPoolClient
+    Export:
+      Name: CognitoUserPoolClient
