@@ -4,7 +4,7 @@
 ![](https://github.com/kyhau/aws-multi-account-viewer/workflows/Back-End%20Build/badge.svg)
 
 Note: This repo is based on [awslabs/aws-multi-account-viewer](https://github.com/awslabs/aws-multi-account-viewer),
-and a summary of the changes and addition features can be found in [Release Notes](ReleaseNotes.md) for.
+and a summary of the changes and addition features can be found in [Release Notes](ReleaseNotes.md).
 
 ---
 Serverless app designed for any customer with two or more accounts to view resources across accounts/regions in simple single pane of glass website. It's split into 2 customizable parts:
