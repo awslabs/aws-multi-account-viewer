@@ -645,39 +645,27 @@ def get_all_s3_buckets(account_number, region, cross_account_role):
 
 
 # Get data sitting in DynamoDB for each account
-def get_current_table(account_number, entry_type, region):
-
+def get_current_table(entry_type, region, account_number=None):
     try:
         # Scan dynamo for all data
-        response = table.query(
-            IndexName='EntryType-index',
-            KeyConditionExpression=Key('EntryType').eq(entry_type),
-            FilterExpression=Attr('AccountNumber').eq(account_number) &
-            Attr('Region').eq(region)
-        )
+        params = {
+            "IndexName": 'EntryType-index',
+            "KeyConditionExpression": Key('EntryType').eq(entry_type),
+        }
 
-        print(f"items from db query: {response['Items']}")
-        return response['Items']
+        if account_number is None:
+            params["FilterExpression"] = Attr('Region').eq(region)
+        else:
+            params["FilterExpression"] = Attr('AccountNumber').eq(account_number) & Attr('Region').eq(region)
 
-    except ClientError as e:
-        print(f'Error: failed to query dynamodb table... {e}')
-    except Exception as e:
-        print(f'Error: failed to query dynamodb table...{e}')
+        response = table.query(**params)
+        data = response['Items']
+        while 'LastEvaluatedKey' in response:
+            params["ExclusiveStartKey"] = response['LastEvaluatedKey']
+            response = table.query(**params)
+            data.extend(response['Items'])
 
-
-# Get data sitting in DynamoDB without account look up
-def get_current_table_without_account(entry_type, region):
-
-    try:
-        # Scan dynamo for all data
-        response = table.query(
-            IndexName='EntryType-index',
-            KeyConditionExpression=Key('EntryType').eq(entry_type),
-            FilterExpression=Attr('Region').eq(region)
-        )
-
-        print(f"items from db query: {response['Items']}")
-        return response['Items']
+        return data
 
     except ClientError as e:
         print(f'Error: failed to query dynamodb table...{e}')
@@ -807,11 +795,11 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
             raise ValueError(f'Invalid function passed: {sqs_function}')
 
         if sqs_function == 'org':
-            dynamo_list = get_current_table_without_account(
-                entry_type=sqs_function, region='us-east-1')
+            dynamo_list = get_current_table(entry_type=sqs_function, region='us-east-1')
         else:
-            dynamo_list = get_current_table(
-                account_number=account_number, entry_type=sqs_function, region=region)
+            dynamo_list = get_current_table(entry_type=sqs_function, region=region, account_number=account_number)
+        
+        print(f'Comparing: {sqs_function} {account_number} {region} current={len(current_boto_list)} prev={len(dynamo_list)}')
 
         compare_lists_and_update(boto_list=current_boto_list, dynamo_list=dynamo_list)
 

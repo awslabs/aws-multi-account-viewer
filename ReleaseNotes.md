@@ -24,3 +24,6 @@
     around the same time (due to eventually consistency nature of DynamoDB).
 11. Updated [Front-End/src/components/Navigation.js](Front-End/src/components/Navigation.js) to fix the label of
     "All Network Interfaces".
+12. Fixed the `get_current_table` and `get_current_table_without_account` functions in
+    [Back-End/lambdas/receive_sqs_message.py](Back-End/lambdas/receive_sqs_message.py) - original code did not
+    handle pagination resulting not retrieving all existing entries from the DynamoDB table.
