@@ -529,22 +529,30 @@ def get_all_network_interfaces(account_number, region, cross_account_role):
 
     for page in paginator.paginate():
         for i in page['NetworkInterfaces']:
-            var_list.append(
-                {
-                    'EntryType': 'network-interfaces',
-                    'PrivateIpAddress': str(i.get('PrivateIpAddress', ' ')),
-                    'PublicIp': str(i.get('Association', {}).get('PublicIp', ' ')),
-                    'AccountNumber': str(account_number),
-                    'Region': str(region),
-                    'Status': str(i.get('Status', ' ')),
-                    'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
-                    'InterfaceType': str(i.get('InterfaceType', ' ')),
-                    'Id': str(i.get('NetworkInterfaceId', ' ')),
-                    'SubnetId': str(i.get('SubnetId', ' ')),
-                    'VpcId': str(i.get('VpcId', ' ')),
-                    'CidrBlock': str(get_subnet(i.get('SubnetId')).get('CidrBlock', ' ')),
-                    'Description': str(i.get('Description', ' '))
+            data = {
+                'EntryType': 'network-interfaces',
+                'PrivateIpAddress': str(i.get('PrivateIpAddress', ' ')),
+                'PublicIp': str(i.get('Association', {}).get('PublicIp', ' ')),
+                'AccountNumber': str(account_number),
+                'Region': str(region),
+                'Status': str(i.get('Status', ' ')),
+                'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
+                'InterfaceType': str(i.get('InterfaceType', ' ')),
+                'NetworkInterfaceId': str(i.get('NetworkInterfaceId', ' ')),
+                'SubnetId': str(i.get('SubnetId', ' ')),
+                'VpcId': str(i.get('VpcId', ' ')),
+                'CidrBlock': str(get_subnet(i.get('SubnetId')).get('CidrBlock', ' ')),
+                'Description': str(i.get('Description', ' '))
+            }
+
+            for ip in i["PrivateIpAddresses"]:
+                data.update({
+                    'Id': f"{i['NetworkInterfaceId']}-{ip['PrivateIpAddress']}",
+                    'PrivateIpAddress': ip['PrivateIpAddress'],
+                    'PublicIp': ip.get('Association', {}).get('PublicIp', ' '),
+                    'Primary': ip['Primary'],
                 })
+                var_list.append(data)
 
     return var_list
 

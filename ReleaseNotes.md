@@ -27,3 +27,6 @@
 12. Fixed the `get_current_table` and `get_current_table_without_account` functions in
     [Back-End/lambdas/receive_sqs_message.py](Back-End/lambdas/receive_sqs_message.py) - original code did not
     handle pagination resulting not retrieving all existing entries from the DynamoDB table.
+13. Fixed the `get_all_network_interfaces` function in
+    [Back-End/lambdas/receive_sqs_message.py](Back-End/lambdas/receive_sqs_message.py) - original code retrieved
+    only primary private/public IPs; updated to return also non primary IPs and added new field `Primary`.
