@@ -64,8 +64,16 @@ export default class AllRoles extends React.Component {
                 text: 'Name',
                 sort: true
             }, {
+                dataField: 'Region',
+                text: 'Region',
+                sort: true
+            },{
                 dataField: 'CreationDate',
                 text: 'CreationDate',
+                sort: true
+            },{
+                dataField: 'Tags',
+                text: 'Tags',
                 sort: true
             }]
         return (
