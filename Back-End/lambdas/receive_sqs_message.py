@@ -286,14 +286,14 @@ def get_all_ec2(account_number, region, cross_account_role):
 
 
 # Get IAM Roles Function
-def get_all_iam_roles(account_number, region, cross_account_role):
+def get_all_iam_roles(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_iam = create_boto_client(
-        account_number, region, 'iam', cross_account_role)
+        account_number, 'us-east-1', 'iam', cross_account_role)
 
     # Page roles
     paginator = client_iam.get_paginator('list_roles')
@@ -314,14 +314,14 @@ def get_all_iam_roles(account_number, region, cross_account_role):
 
 
 # Get IAM Users Function
-def get_all_iam_users(account_number, region, cross_account_role):
+def get_all_iam_users(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_iam = create_boto_client(
-        account_number, region, 'iam', cross_account_role)
+        account_number, 'us-east-1', 'iam', cross_account_role)
 
     # Page users
     paginator = client_iam.get_paginator('list_users')
@@ -343,14 +343,14 @@ def get_all_iam_users(account_number, region, cross_account_role):
 
 
 # Get IAM Users Function
-def get_all_iam_attached_policys(account_number, region, cross_account_role):
+def get_all_iam_attached_policys(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_iam = create_boto_client(
-        account_number, region, 'iam', cross_account_role)
+        account_number, 'us-east-1', 'iam', cross_account_role)
 
     # Page policys
     paginator = client_iam.get_paginator('list_policies')
@@ -605,28 +605,48 @@ def get_all_ris(account_number, region, cross_account_role):
     return var_list
 
 
-# Get S3 Buckets
-def get_all_s3_buckets(account_number, region, cross_account_role):
+# Get S3 Buckets # REGION FORCED TO US-EAST-1
+def get_all_s3_buckets(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_s3 = create_boto_client(
-        account_number, region, 's3', cross_account_role)
+        account_number, 'us-east-1', 's3', cross_account_role)
 
     # No paginator for listing buckets
     # paginator = client_ec2.get_paginator('')
     result = client_s3.list_buckets()
 
     for i in result['Buckets']:
+        bucket_name = i['Name']
+        bucket_creation_date = i['CreationDate']
+        bucket_region = ' '
+        bucket_tag = ' '
+
+        # Try Get Region
+        try:
+            print(f'Getting Region for bucket: {bucket_name}')
+            bucket_region = client_s3.get_bucket_location(Bucket=bucket_name)['LocationConstraint']
+        except ClientError as e:
+            bucket_region = ' '
+
+        #Try Get Tags
+        try:
+            print(f'Getting Tags for bucket: {bucket_name}')
+            bucket_tag = client_s3.get_bucket_tagging(Bucket=bucket_name)['TagSet']
+        except ClientError as e:
+            bucket_tag = 'No Tags Exist'
+
         var_list.append(
             {
-                'Name': str(i['Name']),
+                'Name': str(bucket_name),
                 'EntryType': 's3-buckets',
                 'AccountNumber': str(account_number),
-                'Region': 'us-east-1',
-                'CreationDate': str(i['CreationDate'])
+                'Region': str(bucket_region),
+                'Tags': str(bucket_tag),
+                'CreationDate': str(bucket_creation_date)
             })
 
     return var_list
@@ -662,6 +682,26 @@ def get_current_table_without_account(entry_type, region):
             IndexName='EntryType-index',
             KeyConditionExpression=Key('EntryType').eq(entry_type),
             FilterExpression=Attr('Region').eq(region)
+        )
+
+        print(f"items from db query: {response['Items']}")
+        return response['Items']
+
+    except ClientError as e:
+        print(f'Error: failed to query dynamodb table...{e}')
+    except Exception as e:
+        print(f'Error: failed to query dynamodb table...{e}')
+
+
+# Get data sitting in DynamoDB without account look up
+def get_current_table_without_region(account_number, entry_type):
+
+    try:
+        # Scan dynamo for all data
+        response = table.query(
+            IndexName='EntryType-index',
+            KeyConditionExpression=Key('EntryType').eq(entry_type),
+            FilterExpression=Attr('AccountNumber').eq(account_number)
         )
 
         print(f"items from db query: {response['Items']}")
@@ -782,13 +822,13 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
                 account_number, region, cross_account_role)
         elif sqs_function == 'iam-roles':
             current_boto_list = get_all_iam_roles(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'iam-users':
             current_boto_list = get_all_iam_users(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'iam-attached-policys':
             current_boto_list = get_all_iam_attached_policys(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'odcr':
             current_boto_list = get_all_odcr(
                 account_number, region, cross_account_role)
@@ -812,7 +852,7 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
                 account_number, region, cross_account_role)
         elif sqs_function == 's3-buckets':
             current_boto_list = get_all_s3_buckets(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'org':
             current_boto_list = get_organizations(
                 account_number, region, cross_account_role)
@@ -823,6 +863,10 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
         if sqs_function == 'org':
             dynamo_list = get_current_table_without_account(
                 entry_type=sqs_function, region='us-east-1')
+        # Don't search regions for global API's        
+        elif sqs_function == 's3-buckets' and 'iam-roles' and 'iam-users' and 'iam-attached-policys':
+            dynamo_list = get_current_table_without_region(
+                account_number=account_number, entry_type=sqs_function)
         else:
             dynamo_list = get_current_table(
                 account_number=account_number, entry_type=sqs_function, region=region)
