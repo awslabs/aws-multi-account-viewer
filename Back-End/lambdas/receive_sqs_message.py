@@ -117,22 +117,28 @@ def get_all_lambda(account_number, region, cross_account_role):
             # clean role name out of arn
             iam_role = str(i['Role']).split(':')[5].split('/')[1]
 
-            # Get tags
             lambda_arn = i['FunctionArn']
-            lambda_tag = client_lambda.list_tags(Resource=lambda_arn)['Tags']
+            lambda_name = i['FunctionName']
+
+            # Try Get Tags
+            try:
+                lambda_tag = client_lambda.list_tags(Resource=lambda_arn)['Tags']
+            except ClientError as e:
+                lambda_tag = 'No Tags Exist'
 
             var_list.append(
                 {
                     'EntryType': 'lambda',
                     'Region': str(region),
-                    'FunctionName': str(i['FunctionName']),
-                    'FunctionArn': str(i['FunctionArn']),
+                    'FunctionName': str(lambda_name),
+                    'FunctionArn': str(lambda_arn),
                     'Runtime': str(i['Runtime']),
                     'AccountNumber': str(account_number),
                     'Timeout': str(i['Timeout']),
                     'RoleName': str(iam_role),
                     'Handler': str(i['Handler']),
                     'CodeSize': int(i['CodeSize']),
+                    'Link': str(f'https://{region}.console.aws.amazon.com/lambda/home?region={region}#/functions/{lambda_name}'),
                     'Version': str(i['Version']),
                     'MemorySize': int(i['MemorySize']),
                     'LastModified': str(i['LastModified']),
@@ -160,8 +166,12 @@ def get_all_rds(account_number, region, cross_account_role):
 
             # Get tags
             instance = i['DBInstanceArn']
-            rds_tag = client_rds.list_tags_for_resource(
-                ResourceName=instance)['TagList']
+
+            #Try Get Tags
+            try:
+                rds_tag = client_rds.list_tags_for_resource(ResourceName=instance)['TagList']
+            except ClientError as e:
+                rds_tag = 'No Tags Exist'
 
             var_list.append(
                 {
@@ -175,6 +185,7 @@ def get_all_rds(account_number, region, cross_account_role):
                     'PreferredBackupWindow': str(i.get('PreferredBackupWindow', ' ')),
                     'BackupRetentionPeriod': str(i.get('BackupRetentionPeriod', ' ')),
                     'PreferredMaintenanceWindow': str(i.get('PreferredMaintenanceWindow', ' ')),
+                    'Link': str(f'https://{region}.console.aws.amazon.com/rds/home?region={region}#databases:'),
                     'StorageType': str(i.get('StorageType', ' ')),
                     'Engine': str(i['Engine']),
                     'MultiAZ': str(i.get('MultiAZ', ' ')),
@@ -203,9 +214,6 @@ def get_all_eks(account_number, region, cross_account_role):
 
             cluster_name = i
             eks_detail = client_eks.describe_cluster(name=cluster_name)['cluster']
-            # cluster_arn = eks_detail['arn']
-            # eks_tags = client_eks.list_tags_for_resource(
-            #     resourceArn=cluster_arn)['tags']
 
             var_list.append({
                 'AccountNumber': str(account_number),
@@ -218,9 +226,10 @@ def get_all_eks(account_number, region, cross_account_role):
                 'Created': str(eks_detail['createdAt']),
                 'VpcId': str(eks_detail['resourcesVpcConfig'].get('vpcId', ' ')),
                 'PlatformVersion': str(eks_detail['platformVersion']),
+                'Link': (f'https://{region}.console.aws.amazon.com/eks/home?region={region}#/clusters/{cluster_name}'),
                 'K8 Version': str(eks_detail['version']),
-                'Endpoint': str(eks_detail['endpoint'])
-                # 'Tags': str(eks_tags)
+                'Endpoint': str(eks_detail['endpoint']),
+                'Tags': str(eks_detail.get('tags', 'No Tags Exist'))
             })
 
         return var_list
@@ -263,7 +272,7 @@ def get_all_ec2(account_number, region, cross_account_role):
             vCPU = int(vcpu_core) * int(vcpu_thread)
 
             # Turn Tags into Strings for Table format on front end
-            ec2_tags = i['Instances'][0].get('Tags', ' ')
+            ec2_tags = i['Instances'][0].get('Tags', 'No Tags Exist')
 
             var_list.append(
                 {
@@ -275,6 +284,7 @@ def get_all_ec2(account_number, region, cross_account_role):
                     'vCPU': int(vCPU),
                     'KeyName': str(i['Instances'][0].get('KeyName', ' ')),
                     'RoleName': str(iam_role),
+                    'Link': str(f'https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#Instances:sort=instanceId'),
                     'PrivateIpAddress': str(i['Instances'][0].get('PrivateIpAddress', ' ')),
                     'PublicIpAddress': str(i['Instances'][0].get('PublicIpAddress', ' ')),
                     'InstancePlatform': str(i['Instances'][0].get('Platform', 'Linux/UNIX')),
@@ -300,13 +310,25 @@ def get_all_iam_roles(account_number, cross_account_role):
 
     for page in paginator.paginate():
         for i in page['Roles']:
+
+            role_name = i['RoleName']
+
+            # Get Tags for Role
+            try:
+                print(f'Getting Tags for: {role_name}...')
+                tags = client_iam.list_role_tags(RoleName=role_name)['Tags']
+            except ClientError as e:
+                tags = 'No Tags Exist'
+
             var_list.append(
                 {
                     'Arn': str(i['Arn']),
                     'EntryType': 'iam-roles',
                     'Region': 'us-east-1',
                     'AccountNumber': str(account_number),
-                    'RoleName': str(i['RoleName']),
+                    'Link': str(f"https://console.aws.amazon.com/iam/home?region=us-east-1#/roles/{role_name}"),
+                    'Tags': str(tags),
+                    'RoleName': str(role_name),
                     'CreateDate': str(i['CreateDate'])
                 })
 
@@ -328,13 +350,25 @@ def get_all_iam_users(account_number, cross_account_role):
 
     for page in paginator.paginate():
         for i in page['Users']:
+
+            username = i['UserName']
+
+            # Get Tags for User
+            try:
+                print(f'Getting Tags for: {username}...')
+                tags = client_iam.list_user_tags(UserName=username)['Tags']
+            except ClientError as e:
+                tags = 'No Tags Exist'
+
             var_list.append(
                 {
                     'Arn': str(i['Arn']),
                     'EntryType': 'iam-users',
                     'AccountNumber': str(account_number),
                     'Region': 'us-east-1',
-                    'UserName': str(i['UserName']),
+                    'Link': str(f"https://console.aws.amazon.com/iam/home?region=us-east-1#/users/{username}"),
+                    'UserName': str(username),
+                    'Tags': str(tags),
                     'PasswordLastUsed': str(i.get('PasswordLastUsed', ' ')),
                     'CreateDate': str(i['CreateDate'])
                 })
@@ -460,16 +494,26 @@ def get_organizations(account_number, region, cross_account_role):
     for page in paginator.paginate():
         for i in page['Accounts']:
             if i['Status'] == 'ACTIVE':
+
+                acc_number = i['Id']
+
+                # Try Get Tags
+                try:
+                    org_tags = client_org.list_tags_for_resource(ResourceId=acc_number)['Tags']
+                except ClientError as e:
+                    org_tags = 'No Tags Exist'
+
                 var_list.append(
                     {
-                        'AccountNumber': str(i['Id']),
+                        'AccountNumber': str(acc_number),
                         'Arn': str(i['Arn']),
                         'Region': 'us-east-1',
                         'EntryType': 'org',
                         'Name': str(i['Name']),
                         'Email': str(i['Email']),
                         'Status': str(i['Status']),
-                        'JoinedMethod': str(i['JoinedMethod'])
+                        'JoinedMethod': str(i['JoinedMethod']),
+                        'Tags': str(org_tags)
                     })
 
     return var_list
@@ -499,7 +543,8 @@ def get_all_vpc(account_number, region, cross_account_role):
                     'VpcId': str(i['VpcId']),
                     'DhcpOptionsId': str(i['DhcpOptionsId']),
                     'InstanceTenancy': str(i['InstanceTenancy']),
-                    'Tags': str(i.get('Tags', ' '))
+                    'Link': str(f'https://{region}.console.aws.amazon.com/vpc/home?region={region}#vpcs:sort=VpcId'),
+                    'Tags': str(i.get('Tags', 'No Tags Exist'))
                 })
 
     return var_list
@@ -520,6 +565,9 @@ def get_all_network_interfaces(account_number, region, cross_account_role):
 
     for page in paginator.paginate():
         for i in page['NetworkInterfaces']:
+
+            # Try get Tags
+
             var_list.append(
                 {
                     'EntryType': 'network-interfaces',
@@ -528,9 +576,11 @@ def get_all_network_interfaces(account_number, region, cross_account_role):
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'Status': str(i.get('Status', ' ')),
+                    'Link': str(f"https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#NIC:sort=networkInterfaceId"),
                     'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
                     'InterfaceType': str(i.get('InterfaceType', ' ')),
                     'NetworkInterfaceId': str(i.get('NetworkInterfaceId', ' ')),
+                    'Tags': str(i.get('TagSet', 'No Tags Exist')),
                     'Description': str(i.get('Description', ' '))
                 })
 
@@ -564,7 +614,7 @@ def get_all_subnets(account_number, region, cross_account_role):
                 'VpcId': str(i['VpcId']),
                 'SubnetArn': str(i['SubnetArn']),
                 'AvailableIpAddressCount': i['AvailableIpAddressCount'],
-                'Tags': str(i.get('Tags', ' '))
+                'Tags': str(i.get('Tags', 'No Tags Exist'))
             })
 
     return var_list
@@ -642,6 +692,7 @@ def get_all_s3_buckets(account_number, cross_account_role):
         var_list.append(
             {
                 'Name': str(bucket_name),
+                'Link': str(f'https://s3.console.aws.amazon.com/s3/buckets/{bucket_name}/?region={bucket_region}&tab=overview'),
                 'EntryType': 's3-buckets',
                 'AccountNumber': str(account_number),
                 'Region': str(bucket_region),
@@ -693,7 +744,7 @@ def get_current_table_without_account(entry_type, region):
         print(f'Error: failed to query dynamodb table...{e}')
 
 
-# Get data sitting in DynamoDB without account look up
+# Get data sitting in DynamoDB without region look up
 def get_current_table_without_region(account_number, entry_type):
 
     try:

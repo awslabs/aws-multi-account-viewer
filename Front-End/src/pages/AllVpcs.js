@@ -83,8 +83,7 @@ export default class AllVPCS extends React.Component {
             },{
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true,
-                hidden: true
+                sort: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

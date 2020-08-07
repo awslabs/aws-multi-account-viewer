@@ -84,6 +84,10 @@ export default class AllSubnets extends React.Component {
                 text: 'VpcId',
                 sort: true
             }, {
+                dataField: 'Tags',
+                text: 'Tags',
+                sort: true
+            }, {
                 dataField: 'AvailableIpAddressCount',
                 text: 'AvailableIpAddressCount',
                 sort: true

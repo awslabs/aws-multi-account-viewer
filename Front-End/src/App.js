@@ -35,15 +35,15 @@ Amplify.configure({
     // REQUIRED - Amazon Cognito Region
     region: 'ap-southeast-2',
     // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: "ap-southeast-2_UsrPlId",
+    userPoolId: "ap-southeast-2_ipdtBWZ8b",
     // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
-    userPoolWebClientId: "123usrPoolWebClientID456",
+    userPoolWebClientId: "4pokd7f50649ofadpni83tg5ip",
   },
   API: {
     endpoints: [
       {
         name: "MyAPIGatewayAPI",
-        endpoint: "https://abcd1234.execute-api.ap-southeast-2.amazonaws.com/prod",
+        endpoint: "https://wf17dzsu5m.execute-api.ap-southeast-2.amazonaws.com/prod",
         region: 'ap-southeast-2',
         custom_header: async () => {
           return { Authorization: (await Auth.currentSession()).idToken.jwtToken };
