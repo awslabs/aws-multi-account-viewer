@@ -110,6 +110,8 @@ def lambda_handler(event, context):
             'org',
             'lambda',
             'ec2',
+            'lb',
+            'ebs',
             'rds',
             'odcr',
             'lightsail',
@@ -154,6 +156,10 @@ def lambda_handler(event, context):
                             accountNumber=i, function='lambda', region=b)
                         send_sqs_message(
                             accountNumber=i, function='ec2', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='lb', region=b)
+                        send_sqs_message(
+                            accountNumber=i, function='ebs', region=b)
                         send_sqs_message(
                             accountNumber=i, function='eks', region=b)
                         send_sqs_message(

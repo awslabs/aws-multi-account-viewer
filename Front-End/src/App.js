@@ -9,6 +9,8 @@ import MyTheme from "./components/AmplifyTheme";
 import { Home } from './pages/Home';
 import { Navigation } from './components/Navigation';
 import AllEC2 from './pages/AllEC2';
+import AllLB from './pages/AllLB';
+import AllEBS from './pages/AllEBS';
 import AllEKS from './pages/AllEKS';
 import AllRDS from './pages/AllRDS';
 import AllODCR from './pages/AllODCR';
@@ -35,15 +37,15 @@ Amplify.configure({
     // REQUIRED - Amazon Cognito Region
     region: 'ap-southeast-2',
     // OPTIONAL - Amazon Cognito User Pool ID
-    userPoolId: "ap-southeast-2_ipdtBWZ8b",
+    userPoolId: "ap-southeast-2_UsrPlId",
     // OPTIONAL - Amazon Cognito Web Client ID (26-char alphanumeric string)
-    userPoolWebClientId: "4pokd7f50649ofadpni83tg5ip",
+    userPoolWebClientId: "123usrPoolWebClientID456",
   },
   API: {
     endpoints: [
       {
         name: "MyAPIGatewayAPI",
-        endpoint: "https://wf17dzsu5m.execute-api.ap-southeast-2.amazonaws.com/prod",
+        endpoint: "https://abcd1234.execute-api.ap-southeast-2.amazonaws.com/prod",
         region: 'ap-southeast-2',
         custom_header: async () => {
           return { Authorization: (await Auth.currentSession()).idToken.jwtToken };
@@ -63,6 +65,8 @@ class App extends Component {
           <Navigation />
           <Route exact path="/" component={Home} />
           <Route path="/allec2" component={AllEC2} />
+          <Route path="/allLB" component={AllLB} />
+          <Route path="/allEBS" component={AllEBS} />
           <Route path="/alleks" component={AllEKS} />
           <Route path="/alllambda" component={AllLambda} />
           <Route path="/Table" component={Table} />

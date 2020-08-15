@@ -3,6 +3,7 @@
 
 # backup file in app.js
 *App-backup.js
+*BackupFolder/
 
 #amplify
 amplify/\#current-cloud-backend

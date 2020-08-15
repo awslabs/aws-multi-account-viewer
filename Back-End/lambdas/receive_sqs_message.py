@@ -295,6 +295,100 @@ def get_all_ec2(account_number, region, cross_account_role):
     return var_list
 
 
+# Get ALB/NLB/ELB Function
+def get_all_load_balancers(account_number, region, cross_account_role):
+
+    # Init
+    var_list = []
+
+    # Use boto3 on source account
+    client_elb = create_boto_client(
+        account_number, region, 'elb', cross_account_role)
+
+    # ALB/NLB
+    client_elbv2 = create_boto_client(
+        account_number, region, 'elbv2', cross_account_role)
+
+    # Page all elb's
+    paginator = client_elb.get_paginator('describe_load_balancers')
+
+    for page in paginator.paginate():
+        for i in page['LoadBalancerDescriptions']:
+
+            var_list.append(
+                {
+                    'EntryType': 'lb',
+                    'LoadBalancerName': str(i['LoadBalancerName']),
+                    'DNSName': str(i['DNSName']),
+                    'Scheme': str(i['Scheme']),
+                    'VPC': str(i['VPCId']),
+                    'State': 'n/a',
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'AvailabilityZones': str(i['AvailabilityZones']),
+                    'SecurityGroups': str(i['SecurityGroups']),
+                    'Type': 'classic'
+                })
+
+    # Page all ALB/NLB
+    paginator2 = client_elbv2.get_paginator('describe_load_balancers')
+
+    for page in paginator2.paginate():
+        for i in page['LoadBalancers']:
+
+            var_list.append(
+                {
+                    'EntryType': 'lb',
+                    'LoadBalancerName': str(i['LoadBalancerName']),
+                    'DNSName': str(i['DNSName']),
+                    'Scheme': str(i['Scheme']),
+                    'State': str(i['State']['Code']),
+                    'VPC': str(i['VpcId']),
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'AvailabilityZones': str(i['AvailabilityZones']),
+                    'SecurityGroups': str(i.get('SecurityGroups', ' ')),
+                    'Type': str(i['Type'])
+                })
+
+    return var_list
+
+
+# Get EBS Volumes
+def get_all_ebs(account_number, region, cross_account_role):
+    
+    # Init
+    var_list = []
+
+    # Use boto3 on source account
+    client_ebs = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
+
+    # Page all elb's
+    paginator = client_ebs.get_paginator('describe_volumes')
+
+    for page in paginator.paginate():
+        for i in page['Volumes']:
+
+            var_list.append(
+                {
+                    'EntryType': 'ebs',
+                    'VolumeId': str(i['VolumeId']),
+                    'State': str(i['State']),
+                    'Size': str(i['Size']),
+                    'VolumeType': str(i['VolumeType']),
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'Tags': str(i.get('Tags', 'No Tag')),
+                    'Encrypted': str(i['Encrypted']),
+                    'SnapshotId': str(i['SnapshotId']),
+                    'AvailabilityZone': str(i['AvailabilityZone']),
+                    'CreateTime': str(i['CreateTime'])
+                })
+
+    return var_list
+
+
 # Get IAM Roles Function
 def get_all_iam_roles(account_number, cross_account_role):
 
@@ -864,6 +958,12 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
                 account_number, region, cross_account_role)
         elif sqs_function == 'ec2':
             current_boto_list = get_all_ec2(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'lb':
+            current_boto_list = get_all_load_balancers(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'ebs':
+            current_boto_list = get_all_ebs(
                 account_number, region, cross_account_role)
         elif sqs_function == 'eks':
             current_boto_list = get_all_eks(
