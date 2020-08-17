@@ -1,12 +1,3 @@
-## Multi Account Viewer
-
-![](https://github.com/kyhau/aws-multi-account-viewer/workflows/Front-End%20Build/badge.svg)
-![](https://github.com/kyhau/aws-multi-account-viewer/workflows/Back-End%20Build/badge.svg)
-
-Note: This repo is based on [awslabs/aws-multi-account-viewer](https://github.com/awslabs/aws-multi-account-viewer),
-and a summary of the changes and addition features can be found in [Release Notes](ReleaseNotes.md).
-
----
 <h1 align="center">
 <img src="images/frontpage.png"></a>
 </h1>
