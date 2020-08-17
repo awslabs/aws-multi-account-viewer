@@ -115,7 +115,6 @@ def get_all_lambda(account_number, region, cross_account_role):
             # clean role name out of arn
             iam_role = str(i['Role']).split(':')[5].split('/')[1]
 
-            # Get tags
             lambda_arn = i['FunctionArn']
             lambda_name = i['FunctionName']
 
