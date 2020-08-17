@@ -62,6 +62,8 @@ class Refresh extends React.Component {
                             <Form.Control as="select" value={this.state.inputvalue} onChange={this.handleChange}>
                                 <option>Select...</option>
                                 <option value="ec2">EC2</option>
+                                <option value="lb">Load Balancers</option>
+                                <option value="ebs">EBS</option>
                                 <option value="lambda">Lambda</option>
                                 <option value="rds">RDS</option>
                                 <option value="odcr">ODCR</option>

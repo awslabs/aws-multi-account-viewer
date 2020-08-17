@@ -67,6 +67,10 @@ export default class AllRoles extends React.Component {
                 dataField: 'CreateDate',
                 text: 'CreateDate',
                 sort: true
+            },{
+                dataField: 'Tags',
+                text: 'Tags',
+                sort: true
             }]
         return (
                 <div className="default" style={{ padding: "20px", fontSize: "14px" }}>

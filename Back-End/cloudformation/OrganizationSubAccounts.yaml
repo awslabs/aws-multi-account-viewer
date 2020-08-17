@@ -1,0 +1,28 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: >
+  Use this template in all your Sub Accounts, This template Creates the CrossAccountAccess Role 
+  that your Administrator account can assume with.
+
+Parameters:
+  AdministratorAccountId:
+    Type: String
+    Default: '111111111111' # your administrator account here
+    Description: AWS Account Id of the administrator account (the account that will hold all your data).
+
+Resources:
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CrossAccountAccessOrg
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Ref AdministratorAccountId
+            Action:
+              - sts:AssumeRole
+      Path: /
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/ReadOnlyAccess

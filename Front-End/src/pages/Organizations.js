@@ -76,6 +76,10 @@ export default class Organizations extends React.Component {
                 text: 'Arn',
                 sort: true
             },{
+                dataField: 'Tags',
+                text: 'Tags',
+                sort: true
+            },{
                 dataField: 'JoinedMethod',
                 text: 'JoinedMethod',
                 sort: true

@@ -7,24 +7,31 @@ Note: This repo is based on [awslabs/aws-multi-account-viewer](https://github.co
 and a summary of the changes and addition features can be found in [Release Notes](ReleaseNotes.md).
 
 ---
-Serverless app designed for any customer with two or more accounts to view resources across accounts/regions in simple single pane of glass website. It's split into 2 customizable parts:
+<h1 align="center">
+<img src="images/frontpage.png"></a>
+</h1>
+
+![](https://github.com/awslabs/aws-multi-account-viewer/workflows/Front-End%20Build/badge.svg)
+![](https://github.com/awslabs/aws-multi-account-viewer/workflows/Back-End%20Build/badge.svg)
+
+Serverless app designed for any customer with two or more accounts to view resources/tags across accounts/regions in simple single pane of glass website. It's split into 2 customizable parts:
 
 - Back-End (CloudFormation templates and Python Lambdas)
-- Front-End (CloudFormation templates and React with Amplify)
+- Front-End (React with Amplify)
 
 Current working examples are:
 
-- All AWS Accounts in Organizations
-- All EC2, Lambdas, ODCR, EC2 Reserved Instances, RDS, EKS, Lightsail
-- All IAM Users, Roles, Policy’s
-- All VPCs, Subnets
-- All S3 Buckets
-- All Private and Public IP's
+- AWS Accounts in Organizations
+- EC2, CLB/ALB/NLB, Lambda, ODCR, Reserved Instances, RDS, EKS, Lightsail
+- IAM Users, Roles, Policy’s
+- VPCs, Subnets
+- S3 Buckets, EBS Volumes
+- Private and Public IP's
 - All Tags
 
 ## Demo
 
-<img src="images/demo.gif"></a>
+Demo website coming this week.
 
 ## On this Page
 - [Architecture](#architecture)

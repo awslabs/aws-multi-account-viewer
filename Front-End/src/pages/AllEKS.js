@@ -87,8 +87,7 @@ export default class AllEKS extends React.Component {
             }, {
                 dataField: 'Tags',
                 text: 'Tags',
-                sort: true,
-                hidden: true
+                sort: true
             },{
                 dataField: 'VpcId',
                 text: 'VpcId',

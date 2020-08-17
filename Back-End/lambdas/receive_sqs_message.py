@@ -117,20 +117,27 @@ def get_all_lambda(account_number, region, cross_account_role):
 
             # Get tags
             lambda_arn = i['FunctionArn']
-            lambda_tag = client_lambda.list_tags(Resource=lambda_arn)['Tags']
+            lambda_name = i['FunctionName']
+
+            # Try Get Tags
+            try:
+                lambda_tag = client_lambda.list_tags(Resource=lambda_arn)['Tags']
+            except ClientError as e:
+                lambda_tag = 'No Tags Exist'
 
             var_list.append(
                 {
                     'EntryType': 'lambda',
                     'Region': str(region),
-                    'FunctionName': str(i['FunctionName']),
-                    'Id': str(i['FunctionArn']),
+                    'FunctionName': str(lambda_name),
+                    'Id': str(lambda_arn),
                     'Runtime': str(i['Runtime']),
                     'AccountNumber': str(account_number),
                     'Timeout': str(i['Timeout']),
                     'RoleName': str(iam_role),
                     'Handler': str(i['Handler']),
                     'CodeSize': int(i['CodeSize']),
+                    'Link': str(f'https://{region}.console.aws.amazon.com/lambda/home?region={region}#/functions/{lambda_name}'),
                     'Version': str(i['Version']),
                     'MemorySize': int(i['MemorySize']),
                     'LastModified': str(i['LastModified']),
@@ -158,8 +165,12 @@ def get_all_rds(account_number, region, cross_account_role):
 
             # Get tags
             instance = i['DBInstanceArn']
-            rds_tag = client_rds.list_tags_for_resource(
-                ResourceName=instance)['TagList']
+
+            #Try Get Tags
+            try:
+                rds_tag = client_rds.list_tags_for_resource(ResourceName=instance)['TagList']
+            except ClientError as e:
+                rds_tag = 'No Tags Exist'
 
             var_list.append(
                 {
@@ -173,6 +184,7 @@ def get_all_rds(account_number, region, cross_account_role):
                     'PreferredBackupWindow': str(i.get('PreferredBackupWindow', ' ')),
                     'BackupRetentionPeriod': str(i.get('BackupRetentionPeriod', ' ')),
                     'PreferredMaintenanceWindow': str(i.get('PreferredMaintenanceWindow', ' ')),
+                    'Link': str(f'https://{region}.console.aws.amazon.com/rds/home?region={region}#databases:'),
                     'StorageType': str(i.get('StorageType', ' ')),
                     'Engine': str(i['Engine']),
                     'MultiAZ': str(i.get('MultiAZ', ' ')),
@@ -201,9 +213,6 @@ def get_all_eks(account_number, region, cross_account_role):
 
             cluster_name = i
             eks_detail = client_eks.describe_cluster(name=cluster_name)['cluster']
-            # cluster_arn = eks_detail['arn']
-            # eks_tags = client_eks.list_tags_for_resource(
-            #     resourceArn=cluster_arn)['tags']
 
             var_list.append({
                 'AccountNumber': str(account_number),
@@ -216,9 +225,10 @@ def get_all_eks(account_number, region, cross_account_role):
                 'Created': str(eks_detail['createdAt']),
                 'VpcId': str(eks_detail['resourcesVpcConfig'].get('vpcId', ' ')),
                 'PlatformVersion': str(eks_detail['platformVersion']),
+                'Link': (f'https://{region}.console.aws.amazon.com/eks/home?region={region}#/clusters/{cluster_name}'),
                 'K8 Version': str(eks_detail['version']),
-                'Endpoint': str(eks_detail['endpoint'])
-                # 'Tags': str(eks_tags)
+                'Endpoint': str(eks_detail['endpoint']),
+                'Tags': str(eks_detail.get('tags', 'No Tags Exist'))
             })
 
         return var_list
@@ -261,7 +271,7 @@ def get_all_ec2(account_number, region, cross_account_role):
             vCPU = int(vcpu_core) * int(vcpu_thread)
 
             # Turn Tags into Strings for Table format on front end
-            ec2_tags = i['Instances'][0].get('Tags', ' ')
+            ec2_tags = i['Instances'][0].get('Tags', 'No Tags Exist')
 
             var_list.append(
                 {
@@ -273,6 +283,7 @@ def get_all_ec2(account_number, region, cross_account_role):
                     'vCPU': int(vCPU),
                     'KeyName': str(i['Instances'][0].get('KeyName', ' ')),
                     'RoleName': str(iam_role),
+                    'Link': str(f'https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#Instances:sort=instanceId'),
                     'PrivateIpAddress': str(i['Instances'][0].get('PrivateIpAddress', ' ')),
                     'PublicIpAddress': str(i['Instances'][0].get('PublicIpAddress', ' ')),
                     'InstancePlatform': str(i['Instances'][0].get('Platform', 'Linux/UNIX')),
@@ -283,28 +294,134 @@ def get_all_ec2(account_number, region, cross_account_role):
     return var_list
 
 
+# Get ALB/NLB/ELB Function
+def get_all_load_balancers(account_number, region, cross_account_role):
+
+    # Init
+    var_list = []
+
+    # Use boto3 on source account
+    client_elb = create_boto_client(
+        account_number, region, 'elb', cross_account_role)
+
+    # ALB/NLB
+    client_elbv2 = create_boto_client(
+        account_number, region, 'elbv2', cross_account_role)
+
+    # Page all elb's
+    paginator = client_elb.get_paginator('describe_load_balancers')
+
+    for page in paginator.paginate():
+        for i in page['LoadBalancerDescriptions']:
+
+            var_list.append(
+                {
+                    'EntryType': 'lb',
+                    'LoadBalancerName': str(i['LoadBalancerName']),
+                    'Id': str(i['DNSName']),
+                    'Scheme': str(i['Scheme']),
+                    'VPC': str(i['VPCId']),
+                    'State': 'n/a',
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'AvailabilityZones': str(i['AvailabilityZones']),
+                    'SecurityGroups': str(i['SecurityGroups']),
+                    'Type': 'classic'
+                })
+
+    # Page all ALB/NLB
+    paginator2 = client_elbv2.get_paginator('describe_load_balancers')
+
+    for page in paginator2.paginate():
+        for i in page['LoadBalancers']:
+
+            var_list.append(
+                {
+                    'EntryType': 'lb',
+                    'LoadBalancerName': str(i['LoadBalancerName']),
+                    'Id': str(i['DNSName']),
+                    'Scheme': str(i['Scheme']),
+                    'State': str(i['State']['Code']),
+                    'VPC': str(i['VpcId']),
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'AvailabilityZones': str(i['AvailabilityZones']),
+                    'SecurityGroups': str(i.get('SecurityGroups', ' ')),
+                    'Type': str(i['Type'])
+                })
+
+    return var_list
+
+
+# Get EBS Volumes
+def get_all_ebs(account_number, region, cross_account_role):
+    
+    # Init
+    var_list = []
+
+    # Use boto3 on source account
+    client_ebs = create_boto_client(
+        account_number, region, 'ec2', cross_account_role)
+
+    # Page all elb's
+    paginator = client_ebs.get_paginator('describe_volumes')
+
+    for page in paginator.paginate():
+        for i in page['Volumes']:
+
+            var_list.append(
+                {
+                    'EntryType': 'ebs',
+                    'Id': str(i['VolumeId']),
+                    'State': str(i['State']),
+                    'Size': str(i['Size']),
+                    'VolumeType': str(i['VolumeType']),
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'Tags': str(i.get('Tags', 'No Tag')),
+                    'Encrypted': str(i['Encrypted']),
+                    'SnapshotId': str(i['SnapshotId']),
+                    'AvailabilityZone': str(i['AvailabilityZone']),
+                    'CreateTime': str(i['CreateTime'])
+                })
+
+    return var_list
+
+
 # Get IAM Roles Function
-def get_all_iam_roles(account_number, region, cross_account_role):
+def get_all_iam_roles(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_iam = create_boto_client(
-        account_number, region, 'iam', cross_account_role)
+        account_number, 'us-east-1', 'iam', cross_account_role)
 
     # Page roles
     paginator = client_iam.get_paginator('list_roles')
 
     for page in paginator.paginate():
         for i in page['Roles']:
+
+            role_name = i['RoleName']
+
+            # Get Tags for Role
+            try:
+                print(f'Getting Tags for: {role_name}...')
+                tags = client_iam.list_role_tags(RoleName=role_name)['Tags']
+            except ClientError as e:
+                tags = 'No Tags Exist'
+
             var_list.append(
                 {
                     'Id': str(i['Arn']),
                     'EntryType': 'iam-roles',
                     'Region': 'us-east-1',
                     'AccountNumber': str(account_number),
-                    'RoleName': str(i['RoleName']),
+                    'Link': str(f"https://console.aws.amazon.com/iam/home?region=us-east-1#/roles/{role_name}"),
+                    'Tags': str(tags),
+                    'RoleName': str(role_name),
                     'CreateDate': str(i['CreateDate'])
                 })
 
@@ -312,27 +429,39 @@ def get_all_iam_roles(account_number, region, cross_account_role):
 
 
 # Get IAM Users Function
-def get_all_iam_users(account_number, region, cross_account_role):
+def get_all_iam_users(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_iam = create_boto_client(
-        account_number, region, 'iam', cross_account_role)
+        account_number, 'us-east-1', 'iam', cross_account_role)
 
     # Page users
     paginator = client_iam.get_paginator('list_users')
 
     for page in paginator.paginate():
         for i in page['Users']:
+
+            username = i['UserName']
+
+            # Get Tags for User
+            try:
+                print(f'Getting Tags for: {username}...')
+                tags = client_iam.list_user_tags(UserName=username)['Tags']
+            except ClientError as e:
+                tags = 'No Tags Exist'
+
             var_list.append(
                 {
                     'Id': str(i['Arn']),
                     'EntryType': 'iam-users',
                     'AccountNumber': str(account_number),
                     'Region': 'us-east-1',
-                    'UserName': str(i['UserName']),
+                    'Link': str(f"https://console.aws.amazon.com/iam/home?region=us-east-1#/users/{username}"),
+                    'UserName': str(username),
+                    'Tags': str(tags),
                     'PasswordLastUsed': str(i.get('PasswordLastUsed', ' ')),
                     'CreateDate': str(i['CreateDate'])
                 })
@@ -341,14 +470,14 @@ def get_all_iam_users(account_number, region, cross_account_role):
 
 
 # Get IAM Users Function
-def get_all_iam_attached_policys(account_number, region, cross_account_role):
+def get_all_iam_attached_policys(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_iam = create_boto_client(
-        account_number, region, 'iam', cross_account_role)
+        account_number, 'us-east-1', 'iam', cross_account_role)
 
     # Page policys
     paginator = client_iam.get_paginator('list_policies')
@@ -459,16 +588,26 @@ def get_organizations(account_number, region, cross_account_role):
     for page in paginator.paginate():
         for i in page['Accounts']:
             if i['Status'] == 'ACTIVE':
+
+                acc_number = i['Id']
+
+                # Try Get Tags
+                try:
+                    org_tags = client_org.list_tags_for_resource(ResourceId=acc_number)['Tags']
+                except ClientError as e:
+                    org_tags = 'No Tags Exist'
+
                 var_list.append(
                     {
-                        'AccountNumber': str(i['Id']),
+                        'AccountNumber': str(acc_number),
                         'Id': str(i['Arn']),
                         'Region': 'us-east-1',
                         'EntryType': 'org',
                         'Name': str(i['Name']),
                         'Email': str(i['Email']),
                         'Status': str(i['Status']),
-                        'JoinedMethod': str(i['JoinedMethod'])
+                        'JoinedMethod': str(i['JoinedMethod']),
+                        'Tags': str(org_tags)
                     })
 
     return var_list
@@ -498,7 +637,8 @@ def get_all_vpc(account_number, region, cross_account_role):
                     'Id': str(i['VpcId']),
                     'DhcpOptionsId': str(i['DhcpOptionsId']),
                     'InstanceTenancy': str(i['InstanceTenancy']),
-                    'Tags': str(i.get('Tags', ' '))
+                    'Link': str(f'https://{region}.console.aws.amazon.com/vpc/home?region={region}#vpcs:sort=VpcId'),
+                    'Tags': str(i.get('Tags', 'No Tags Exist'))
                 })
 
     return var_list
@@ -536,12 +676,14 @@ def get_all_network_interfaces(account_number, region, cross_account_role):
                 'AccountNumber': str(account_number),
                 'Region': str(region),
                 'Status': str(i.get('Status', ' ')),
+                'Link': str(f"https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#NIC:sort=networkInterfaceId"),
                 'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
                 'InterfaceType': str(i.get('InterfaceType', ' ')),
                 'NetworkInterfaceId': str(i.get('NetworkInterfaceId', ' ')),
                 'SubnetId': str(i.get('SubnetId', ' ')),
                 'VpcId': str(i.get('VpcId', ' ')),
                 'CidrBlock': str(get_subnet(i.get('SubnetId')).get('CidrBlock', ' ')),
+                'Tags': str(i.get('TagSet', 'No Tags Exist')),
                 'Description': str(i.get('Description', ' '))
             }
 
@@ -552,7 +694,6 @@ def get_all_network_interfaces(account_number, region, cross_account_role):
                     'PublicIp': ip.get('Association', {}).get('PublicIp', ' '),
                     'Primary': ip['Primary'],
                 })
-                var_list.append(data)
 
     return var_list
 
@@ -584,7 +725,7 @@ def get_all_subnets(account_number, region, cross_account_role):
                 'VpcId': str(i['VpcId']),
                 'SubnetArn': str(i['SubnetArn']),
                 'AvailableIpAddressCount': i['AvailableIpAddressCount'],
-                'Tags': str(i.get('Tags', ' '))
+                'Tags': str(i.get('Tags', 'No Tags Exist'))
             })
 
     return var_list
@@ -625,56 +766,79 @@ def get_all_ris(account_number, region, cross_account_role):
     return var_list
 
 
-# Get S3 Buckets
-def get_all_s3_buckets(account_number, region, cross_account_role):
+# Get S3 Buckets # REGION FORCED TO US-EAST-1
+def get_all_s3_buckets(account_number, cross_account_role):
 
     # Init
     var_list = []
 
     # Use boto3 on source account
     client_s3 = create_boto_client(
-        account_number, region, 's3', cross_account_role)
+        account_number, 'us-east-1', 's3', cross_account_role)
 
     # No paginator for listing buckets
     # paginator = client_ec2.get_paginator('')
     result = client_s3.list_buckets()
 
     for i in result['Buckets']:
+        bucket_name = i['Name']
+        bucket_creation_date = i['CreationDate']
+        bucket_region = ' '
+        bucket_tag = ' '
+
+        # Try Get Region
+        try:
+            print(f'Getting Region for bucket: {bucket_name}')
+            bucket_region = client_s3.get_bucket_location(Bucket=bucket_name)['LocationConstraint']
+        except ClientError as e:
+            bucket_region = ' '
+
+        #Try Get Tags
+        try:
+            print(f'Getting Tags for bucket: {bucket_name}')
+            bucket_tag = client_s3.get_bucket_tagging(Bucket=bucket_name)['TagSet']
+        except ClientError as e:
+            bucket_tag = 'No Tags Exist'
+
         var_list.append(
             {
-                'Id': str(i['Name']),
+                'Id': str(bucket_name),
+                'Link': str(f'https://s3.console.aws.amazon.com/s3/buckets/{bucket_name}/?region={bucket_region}&tab=overview'),
                 'EntryType': 's3-buckets',
                 'AccountNumber': str(account_number),
-                'Region': 'us-east-1',
-                'CreationDate': str(i['CreationDate'])
+                'Region': str(bucket_region),
+                'Tags': str(bucket_tag),
+                'CreationDate': str(bucket_creation_date)
             })
 
     return var_list
 
 
-# Get data sitting in DynamoDB for each account
-def get_current_table(entry_type, region, account_number=None):
+# Get data sitting in DynamoDB
+def get_current_table(entry_type, region=None, account_number=None):
     try:
         # Scan dynamo for all data
         params = {
-            "IndexName": 'EntryType-index',
-            "KeyConditionExpression": Key('EntryType').eq(entry_type),
+            'IndexName': 'EntryType-index',
+            'KeyConditionExpression': Key('EntryType').eq(entry_type),
         }
-
-        if account_number is None:
-            params["FilterExpression"] = Attr('Region').eq(region)
+        
+        if account_number is not None and region is not None:
+            params['FilterExpression'] = Attr('AccountNumber').eq(account_number) & Attr('Region').eq(region)
+        elif account_number is not None:
+            params['FilterExpression'] = Attr('AccountNumber').eq(account_number)
         else:
-            params["FilterExpression"] = Attr('AccountNumber').eq(account_number) & Attr('Region').eq(region)
-
+            params['FilterExpression'] = Attr('Region').eq(region)
+        
         response = table.query(**params)
         data = response['Items']
         while 'LastEvaluatedKey' in response:
             params["ExclusiveStartKey"] = response['LastEvaluatedKey']
             response = table.query(**params)
             data.extend(response['Items'])
-
+        
         return data
-
+    
     except ClientError as e:
         print(f'Error: failed to query dynamodb table...{e}')
     except Exception as e:
@@ -683,7 +847,9 @@ def get_current_table(entry_type, region, account_number=None):
 
 # DynamoDB Create/Replace Item
 def dynamo_put_item(dynamodb_item):
+
     try:
+
         # Put item
         response = table.put_item(Item=dynamodb_item)
 
@@ -698,7 +864,9 @@ def dynamo_put_item(dynamodb_item):
 
 # DynamoDB Delete Item
 def dynamo_delete_item(dynamodb_item):
+
     try:
+
         response = table.delete_item(
             Key={
                 'Id': dynamodb_item
@@ -729,11 +897,11 @@ def dynamo_delete_all_items():
 def compare_lists_and_update(boto_list, dynamo_list):
     current_ids = [item['Id'] for item in boto_list]
     existing_ids = [item['Id'] for item in dynamo_list]
-
+    
     for existing_id in existing_ids:
         if existing_id not in current_ids:
             dynamo_delete_item(existing_id)
-
+    
     for resource in boto_list:
         strip_empty_values = {k: v for k, v in resource.items() if v}
         dynamo_put_item(strip_empty_values)
@@ -756,6 +924,12 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
         elif sqs_function == 'ec2':
             current_boto_list = get_all_ec2(
                 account_number, region, cross_account_role)
+        elif sqs_function == 'lb':
+            current_boto_list = get_all_load_balancers(
+                account_number, region, cross_account_role)
+        elif sqs_function == 'ebs':
+            current_boto_list = get_all_ebs(
+                account_number, region, cross_account_role)
         elif sqs_function == 'eks':
             current_boto_list = get_all_eks(
                 account_number, region, cross_account_role)
@@ -764,13 +938,13 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
                 account_number, region, cross_account_role)
         elif sqs_function == 'iam-roles':
             current_boto_list = get_all_iam_roles(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'iam-users':
             current_boto_list = get_all_iam_users(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'iam-attached-policys':
             current_boto_list = get_all_iam_attached_policys(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'odcr':
             current_boto_list = get_all_odcr(
                 account_number, region, cross_account_role)
@@ -794,7 +968,7 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
                 account_number, region, cross_account_role)
         elif sqs_function == 's3-buckets':
             current_boto_list = get_all_s3_buckets(
-                account_number, 'us-east-1', cross_account_role)
+                account_number, cross_account_role)
         elif sqs_function == 'org':
             current_boto_list = get_organizations(
                 account_number, region, cross_account_role)
@@ -804,11 +978,14 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
 
         if sqs_function == 'org':
             dynamo_list = get_current_table(entry_type=sqs_function, region='us-east-1')
+        # Don't search regions for global API's
+        elif sqs_function in ['s3-buckets', 'iam-roles', 'iam-users', 'iam-attached-policys']:
+            dynamo_list = get_current_table(entry_type=sqs_function, account_number=account_number)
         else:
             dynamo_list = get_current_table(entry_type=sqs_function, region=region, account_number=account_number)
         
         print(f'Comparing: {sqs_function} {account_number} {region} current={len(current_boto_list)} prev={len(dynamo_list)}')
-
+        
         compare_lists_and_update(boto_list=current_boto_list, dynamo_list=dynamo_list)
 
     except ClientError as e:

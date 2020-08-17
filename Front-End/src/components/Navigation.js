@@ -27,60 +27,58 @@ export class Navigation extends Component {
   };
 
 
-    render() {
-      return (
-        <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
-          <Navbar.Brand href="/">Multi Account Viewer</Navbar.Brand>
-          <Navbar.Toggle aria-controls="responsive-navbar-nav" />
-          <Navbar.Collapse id="responsive-navbar-nav">
-            <Nav className="mr-auto">
-            <NavDropdown title="EC2" id="collasible-nav-dropdown">
-                <NavDropdown.Item href="/allec2">View All EC2 Instances</NavDropdown.Item>
-                <NavDropdown.Item href="/allris">View All RIs</NavDropdown.Item>
-                <NavDropdown.Item href="/allodcr">View All ODCRs</NavDropdown.Item>
-                <NavDropdown.Item href="/alleks">View All EKS</NavDropdown.Item>
-                <NavDropdown.Item href="/alllightsail">View All Lightsail Instances</NavDropdown.Item>
-              </NavDropdown>
-
-            <NavDropdown title="Lambda" id="collasible-nav-dropdown">
-              <NavDropdown.Item href="/alllambda">All Lambda's</NavDropdown.Item>
+  render() {
+    return (
+      <Navbar collapseOnSelect expand="lg" bg="dark" variant="dark">
+        <Navbar.Brand href="/">Multi Account Viewer</Navbar.Brand>
+        <Navbar.Toggle aria-controls="responsive-navbar-nav" />
+        <Navbar.Collapse id="responsive-navbar-nav">
+          <Nav className="mr-auto">
+            <NavDropdown title="Compute" id="collasible-nav-dropdown">
+              <NavDropdown.Item href="/allec2">EC2 Instances</NavDropdown.Item>
+              <NavDropdown.Item href="/allLB">Load Balancers</NavDropdown.Item>
+              <NavDropdown.Item href="/alllambda">Lambda's</NavDropdown.Item>
+              <NavDropdown.Item href="/allris">Reserved Instances</NavDropdown.Item>
+              <NavDropdown.Item href="/allodcr">ODCRs</NavDropdown.Item>
+              <NavDropdown.Item href="/alleks">EKS</NavDropdown.Item>
+              <NavDropdown.Item href="/alllightsail">Lightsail Instances</NavDropdown.Item>
             </NavDropdown>
 
-            <NavDropdown title="IAM" id="collasible-nav-dropdown">
-                <NavDropdown.Item href="/AllUsers">All Users</NavDropdown.Item>
-                <NavDropdown.Item href="/AllRoles">All Roles</NavDropdown.Item>
-                <NavDropdown.Item href="/AllAttachedPolicys">All Attached Policys</NavDropdown.Item>
-              </NavDropdown>
+            <NavDropdown title="Storage" id="collasible-nav-dropdown">
+              <NavDropdown.Item href="/AllS3">S3 Buckets</NavDropdown.Item>
+              <NavDropdown.Item href="/AllEBS">EBS Volumes</NavDropdown.Item>
+            </NavDropdown>
 
-              <NavDropdown title="RDS" id="collasible-nav-dropdown">
-                <NavDropdown.Item href="/allrds">All RDS Instances</NavDropdown.Item>
-              </NavDropdown>
+            <NavDropdown title="Security" id="collasible-nav-dropdown">
+              <NavDropdown.Item href="/organizations">Accounts</NavDropdown.Item>
+              <NavDropdown.Item href="/AllUsers">Users</NavDropdown.Item>
+              <NavDropdown.Item href="/AllRoles">Roles</NavDropdown.Item>
+              <NavDropdown.Item href="/AllAttachedPolicys">Attached Policys</NavDropdown.Item>
+            </NavDropdown>
 
-              <NavDropdown title="VPC" id="collasible-nav-dropdown">
-                <NavDropdown.Item href="/Allvpcs">All VPCs</NavDropdown.Item>
-                <NavDropdown.Item href="/Allsubnets">All Subnets</NavDropdown.Item>
-                <NavDropdown.Item href="/AllNetworkInterfaces">All Network Interfaces</NavDropdown.Item>
-              </NavDropdown>
+            <NavDropdown title="RDS" id="collasible-nav-dropdown">
+              <NavDropdown.Item href="/allrds">RDS</NavDropdown.Item>
+            </NavDropdown>
 
-              <NavDropdown title="Organizations" id="collasible-nav-dropdown">
-                <NavDropdown.Item href="/organizations">All Active Accounts</NavDropdown.Item>
-              </NavDropdown>
+            <NavDropdown title="VPC" id="collasible-nav-dropdown">
+              <NavDropdown.Item href="/Allvpcs">VPCs</NavDropdown.Item>
+              <NavDropdown.Item href="/Allsubnets">Subnets</NavDropdown.Item>
+              <NavDropdown.Item href="/AllNetworkInterfaces">Network Interfaces</NavDropdown.Item>
+            </NavDropdown>
 
-              <NavDropdown title="S3" id="collasible-nav-dropdown">
-                <NavDropdown.Item href="/AllS3">All S3 Buckets</NavDropdown.Item>
-              </NavDropdown>
 
-              <NavLink href="/AllData">All Data</NavLink>
-              <NavLink href="/refresh">Refresh Checks</NavLink>
-              
-            </Nav>
 
-            <Nav>
-             <Button type="submit" variant="outline-info" onClick={(e) => { this.signOut(e) }}>Sign Out</Button>
-            </Nav>
+            <NavLink href="/AllData">All Data</NavLink>
+            <NavLink href="/refresh">Refresh Checks</NavLink>
 
-          </Navbar.Collapse>
-        </Navbar>
+          </Nav>
+
+          <Nav>
+            <Button type="submit" variant="outline-info" onClick={(e) => { this.signOut(e) }}>Sign Out</Button>
+          </Nav>
+
+        </Navbar.Collapse>
+      </Navbar>
     );
   }
 }

@@ -5,7 +5,7 @@ import React from 'react';
 import { API } from 'aws-amplify';
 import Table from './Table';
 
-export default class AllSubnets extends React.Component {
+export default class AllLB extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
@@ -18,10 +18,10 @@ export default class AllSubnets extends React.Component {
 
         // API Gateway
         let apiName = 'MyAPIGatewayAPI';
-        let querypath = '/search/?scan=subnet';
+        let querypath = '/search/?scan=ebs';
 
-        // Loading 
-        this.setState({ isLoading: true });
+        //Loading 
+        this.setState({ isloading: true });
 
         // Scan DynamoDB for results
         API.get(apiName, querypath).then(response => {
@@ -35,12 +35,12 @@ export default class AllSubnets extends React.Component {
             })
             .catch(error => {
                 this.setState({ error, isLoading: false })
-                console.log(error.response)
+                console.log(error.response) 
             });
     }
     render() {
 
-        const { isLoading, error, instances } = this.state;
+        const { instances, isLoading, error } = this.state;
 
         if (error) {
             return <div className="default"><h1><center><br></br>{error.message}</center></h1></div>;
@@ -55,6 +55,7 @@ export default class AllSubnets extends React.Component {
                 dataField: 'Id',
                 text: 'Id',
                 hidden: true,
+                csvExport: false
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
@@ -63,46 +64,47 @@ export default class AllSubnets extends React.Component {
                 dataField: 'Region',
                 text: 'Region',
                 sort: true
-            },{
-                dataField: 'CidrBlock',
-                text: 'CidrBlock',
+            }, {
+                dataField: 'VolumeId',
+                text: 'VolumeId',
                 sort: true
             }, {
-                dataField: 'AvailabilityZone',
-                text: 'AvailabilityZone',
+                dataField: 'State',
+                text: 'State',
                 sort: true
             }, {
-                dataField: 'AvailabilityZoneId',
-                text: 'AvailabilityZoneId',
+                dataField: 'Size',
+                text: 'Size',
                 sort: true
             }, {
-                dataField: 'Id',
-                text: 'SubnetId',
+                dataField: 'VolumeType',
+                text: 'VolumeType',
                 sort: true
             }, {
-                dataField: 'VpcId',
-                text: 'VpcId',
+                dataField: 'Encrypted',
+                text: 'Encrypted',
+                sort: true
+            }, {
+                dataField: 'SnapshotId',
+                text: 'SnapshotId',
                 sort: true
             }, {
                 dataField: 'Tags',
                 text: 'Tags',
                 sort: true
-            }, {
-                dataField: 'AvailableIpAddressCount',
-                text: 'AvailableIpAddressCount',
-                sort: true
             }]
+
         return (
-                <div className="default" style={{ padding: "20px", fontSize: "14px" }}>
-                    <center><h2>All Subnets</h2></center>
-                    <br />
-                    <Table data={instances}
-                           columns={columns}
-                           id="Id"
-                           sort="AccountNumber"
-                           search="name"/>
-                </div>
-                )
+            <div className="default" style={{ padding: "20px", fontSize: "14px" }}>
+                <center><h2>EBS Volumes</h2></center>
+                <br />
+                <Table data={instances}
+                    columns={columns}
+                    loading={isLoading}
+                    id="Id"
+                    sort="AccountNumber"
+                    search="name" />
+            </div>
+        )
     }
 }
-

@@ -108,6 +108,10 @@ export default class AllNetworkInterfaces extends React.Component {
                 text: 'Description',
                 sort: true,
                 hidden: true
+            }, {
+                dataField: 'Tags',
+                text: 'Tags',
+                sort: true,
             }
         ]
         return (
