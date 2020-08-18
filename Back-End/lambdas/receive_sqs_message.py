@@ -826,7 +826,7 @@ def get_current_table(entry_type, region=None, account_number=None):
             params['FilterExpression'] = Attr('AccountNumber').eq(account_number) & Attr('Region').eq(region)
         elif account_number is not None:
             params['FilterExpression'] = Attr('AccountNumber').eq(account_number)
-        else:
+        elif region is not None:
             params['FilterExpression'] = Attr('Region').eq(region)
         
         response = table.query(**params)
