@@ -65,7 +65,7 @@ export default class AllLB extends React.Component {
                 text: 'Region',
                 sort: true
             }, {
-                dataField: 'VolumeId',
+                dataField: 'Id',
                 text: 'VolumeId',
                 sort: true
             }, {

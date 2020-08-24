@@ -104,7 +104,7 @@ export default class AllEKS extends React.Component {
                 sort: true,
                 hidden: true
             }, {
-                dataField: 'Arn',
+                dataField: 'Id',
                 text: 'Arn',
                 sort: true,
                 hidden: true

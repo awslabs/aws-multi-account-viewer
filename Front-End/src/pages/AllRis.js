@@ -76,7 +76,7 @@ export default class AllRis extends React.Component {
                 text: 'ProductDescription',
                 sort: true
             }, {
-                dataField: 'ReservedInstancesId',
+                dataField: 'Id',
                 text: 'ReservedInstancesId',
                 sort: true
             }, {

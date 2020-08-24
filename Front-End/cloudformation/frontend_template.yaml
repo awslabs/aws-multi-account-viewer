@@ -1,0 +1,92 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >
+  Launch a static website backed by an S3 bucket and served via https through
+  CloudFront. Assumes you have the following available already
+
+Parameters:
+  LogsBucketName:
+    Type: String
+    Description: Bucket name for the application logging
+  S3BucketName:
+    Description: Name of the s3 bucket to create for website source files.
+    Type: "String"
+
+Resources:
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref S3BucketName
+      AccessControl: BucketOwnerFullControl
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: !Sub "${S3Bucket}-origin-access-identity"
+
+  S3BucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Statement:
+          -
+            Sid: "AllowCloudFrontAccessIdentity"
+            Effect: "Allow"
+            Action:
+              - s3:GetObject
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+            Principal:
+              AWS: !Sub "arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOAI}"
+
+  CFDistribution:
+    Type: AWS::CloudFront::Distribution
+    Properties:
+      DistributionConfig:
+        Origins:
+          - DomainName: !GetAtt S3Bucket.DomainName
+            Id: !Sub "${S3Bucket}S3OriginId"
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub "origin-access-identity/cloudfront/${CloudFrontOAI}"
+        Comment: !Sub "CloudFront origin for ${S3BucketName}"
+        CustomErrorResponses:
+          - ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        DefaultCacheBehavior:
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          TargetOriginId: !Sub "${S3Bucket}S3OriginId"
+          ForwardedValues:
+            QueryString: false
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        DefaultRootObject: index.html
+        Enabled: true
+        HttpVersion: http2
+        Logging:
+          Bucket: !Sub "${LogsBucketName}.s3.amazonaws.com"
+          IncludeCookies: false
+          Prefix: cloudfront
+        PriceClass: PriceClass_100
+
+Outputs:
+  CFDistributionDomainName:
+    Description: CloudFront distribution domain name
+    Value: !GetAtt CFDistribution.DomainName
+  CFDistributionID:
+    Description: CloudFront distribution ID
+    Value: !Ref CFDistribution

@@ -4,9 +4,7 @@
 import boto3
 import json
 import os
-import uuid
 import decimal
-import copy
 from ast import literal_eval
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Attr, Key
@@ -131,7 +129,7 @@ def get_all_lambda(account_number, region, cross_account_role):
                     'EntryType': 'lambda',
                     'Region': str(region),
                     'FunctionName': str(lambda_name),
-                    'FunctionArn': str(lambda_arn),
+                    'Id': str(lambda_arn),
                     'Runtime': str(i['Runtime']),
                     'AccountNumber': str(account_number),
                     'Timeout': str(i['Timeout']),
@@ -179,7 +177,7 @@ def get_all_rds(account_number, region, cross_account_role):
                     'Region': str(region),
                     'AccountNumber': str(account_number),
                     'State': str(i['DBInstanceStatus']),
-                    'DBInstanceIdentifier': str(i['DBInstanceIdentifier']),
+                    'Id': str(i['DBInstanceIdentifier']),
                     'DBInstanceClass': str(i['DBInstanceClass']),
                     'AllocatedStorage': int(i.get('AllocatedStorage', ' ')),
                     'PreferredBackupWindow': str(i.get('PreferredBackupWindow', ' ')),
@@ -220,7 +218,7 @@ def get_all_eks(account_number, region, cross_account_role):
                 'EntryType': str('eks'),
                 'Region': str(region),
                 'Name': str(eks_detail['name']),
-                'Arn': str(eks_detail['arn']),
+                'Id': str(eks_detail['arn']),
                 'Status': str(eks_detail['status']),
                 'RoleArn': str(eks_detail.get('roleArn', ' ')),
                 'Created': str(eks_detail['createdAt']),
@@ -277,7 +275,7 @@ def get_all_ec2(account_number, region, cross_account_role):
             var_list.append(
                 {
                     'EntryType': 'ec2',
-                    'InstanceId': str(i['Instances'][0]['InstanceId']),
+                    'Id': str(i['Instances'][0]['InstanceId']),
                     'State': str(i['Instances'][0]['State']['Name']),
                     'AccountNumber': str(account_number),
                     'Region': str(region),
@@ -319,7 +317,7 @@ def get_all_load_balancers(account_number, region, cross_account_role):
                 {
                     'EntryType': 'lb',
                     'LoadBalancerName': str(i['LoadBalancerName']),
-                    'DNSName': str(i['DNSName']),
+                    'Id': str(i['DNSName']),
                     'Scheme': str(i['Scheme']),
                     'VPC': str(i['VPCId']),
                     'State': 'n/a',
@@ -340,7 +338,7 @@ def get_all_load_balancers(account_number, region, cross_account_role):
                 {
                     'EntryType': 'lb',
                     'LoadBalancerName': str(i['LoadBalancerName']),
-                    'DNSName': str(i['DNSName']),
+                    'Id': str(i['DNSName']),
                     'Scheme': str(i['Scheme']),
                     'State': str(i['State']['Code']),
                     'VPC': str(i['VpcId']),
@@ -373,7 +371,7 @@ def get_all_ebs(account_number, region, cross_account_role):
             var_list.append(
                 {
                     'EntryType': 'ebs',
-                    'VolumeId': str(i['VolumeId']),
+                    'Id': str(i['VolumeId']),
                     'State': str(i['State']),
                     'Size': str(i['Size']),
                     'VolumeType': str(i['VolumeType']),
@@ -416,7 +414,7 @@ def get_all_iam_roles(account_number, cross_account_role):
 
             var_list.append(
                 {
-                    'Arn': str(i['Arn']),
+                    'Id': str(i['Arn']),
                     'EntryType': 'iam-roles',
                     'Region': 'us-east-1',
                     'AccountNumber': str(account_number),
@@ -456,7 +454,7 @@ def get_all_iam_users(account_number, cross_account_role):
 
             var_list.append(
                 {
-                    'Arn': str(i['Arn']),
+                    'Id': str(i['Arn']),
                     'EntryType': 'iam-users',
                     'AccountNumber': str(account_number),
                     'Region': 'us-east-1',
@@ -487,7 +485,7 @@ def get_all_iam_attached_policys(account_number, cross_account_role):
         for i in page['Policies']:
             var_list.append(
                 {
-                    'Arn': str(i['Arn']),
+                    'Id': str(i['Arn']),
                     'EntryType': 'iam-attached-policys',
                     'AccountNumber': str(account_number),
                     'Region': 'us-east-1',
@@ -521,7 +519,7 @@ def get_all_odcr(account_number, region, cross_account_role):
                         'Region': str(region),
                         'AvailabilityZone': str(i['AvailabilityZone']),
                         'AvailableInstanceCount': int(i['AvailableInstanceCount']),
-                        'CapacityReservationId': str(i['CapacityReservationId']),
+                        'Id': str(i['CapacityReservationId']),
                         'Qty Available': str(f"{i['AvailableInstanceCount']} of {i['TotalInstanceCount']}"),
                         'CreateDate': str(i['CreateDate']),
                         'EbsOptimized': str(i['EbsOptimized']),
@@ -557,6 +555,7 @@ def get_all_lightsail(account_number, region, cross_account_role):
             var_list.append(
                 {
                     'EntryType': 'lightsail',
+                    'Id': str(i['arn']),
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'AvailabilityZone': str(i['location']['availabilityZone']),
@@ -600,7 +599,7 @@ def get_organizations(account_number, region, cross_account_role):
                 var_list.append(
                     {
                         'AccountNumber': str(acc_number),
-                        'Arn': str(i['Arn']),
+                        'Id': str(i['Arn']),
                         'Region': 'us-east-1',
                         'EntryType': 'org',
                         'Name': str(i['Name']),
@@ -634,7 +633,7 @@ def get_all_vpc(account_number, region, cross_account_role):
                     'AccountNumber': str(account_number),
                     'Region': str(region),
                     'CidrBlock': str(i['CidrBlock']),
-                    'VpcId': str(i['VpcId']),
+                    'Id': str(i['VpcId']),
                     'DhcpOptionsId': str(i['DhcpOptionsId']),
                     'InstanceTenancy': str(i['InstanceTenancy']),
                     'Link': str(f'https://{region}.console.aws.amazon.com/vpc/home?region={region}#vpcs:sort=VpcId'),
@@ -654,28 +653,45 @@ def get_all_network_interfaces(account_number, region, cross_account_role):
     client_ec2 = create_boto_client(
         account_number, region, 'ec2', cross_account_role)
 
+    retrieved_subnets = {}
+    def get_subnet(subnet_id):
+        try:
+            if subnet_id and subnet_id not in retrieved_subnets:
+                retrieved_subnets[subnet_id] = client_ec2.describe_subnets(SubnetIds=[subnet_id])['Subnets'][0]
+            return retrieved_subnets[subnet_id]
+        except:
+            print(f"Unable to call describe_subnets for {subnet_id}")
+        return {}
+
     # Page all vpc's
     paginator = client_ec2.get_paginator('describe_network_interfaces')
 
     for page in paginator.paginate():
         for i in page['NetworkInterfaces']:
+            data = {
+                'EntryType': 'network-interfaces',
+                'PrivateIpAddress': str(i.get('PrivateIpAddress', ' ')),
+                'PublicIp': str(i.get('Association', {}).get('PublicIp', ' ')),
+                'AccountNumber': str(account_number),
+                'Region': str(region),
+                'Status': str(i.get('Status', ' ')),
+                'Link': str(f"https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#NIC:sort=networkInterfaceId"),
+                'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
+                'InterfaceType': str(i.get('InterfaceType', ' ')),
+                'NetworkInterfaceId': str(i.get('NetworkInterfaceId', ' ')),
+                'SubnetId': str(i.get('SubnetId', ' ')),
+                'VpcId': str(i.get('VpcId', ' ')),
+                'CidrBlock': str(get_subnet(i.get('SubnetId')).get('CidrBlock', ' ')),
+                'Tags': str(i.get('TagSet', 'No Tags Exist')),
+                'Description': str(i.get('Description', ' '))
+            }
 
-            # Try get Tags
-
-            var_list.append(
-                {
-                    'EntryType': 'network-interfaces',
-                    'PrivateIpAddress': str(i.get('PrivateIpAddress', ' ')),
-                    'PublicIp': str(i.get('Association', {}).get('PublicIp', ' ')),
-                    'AccountNumber': str(account_number),
-                    'Region': str(region),
-                    'Status': str(i.get('Status', ' ')),
-                    'Link': str(f"https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#NIC:sort=networkInterfaceId"),
-                    'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
-                    'InterfaceType': str(i.get('InterfaceType', ' ')),
-                    'NetworkInterfaceId': str(i.get('NetworkInterfaceId', ' ')),
-                    'Tags': str(i.get('TagSet', 'No Tags Exist')),
-                    'Description': str(i.get('Description', ' '))
+            for ip in i["PrivateIpAddresses"]:
+                data.update({
+                    'Id': f"{i['NetworkInterfaceId']}-{ip['PrivateIpAddress']}",
+                    'PrivateIpAddress': ip['PrivateIpAddress'],
+                    'PublicIp': ip.get('Association', {}).get('PublicIp', ' '),
+                    'Primary': ip['Primary'],
                 })
 
     return var_list
@@ -704,7 +720,7 @@ def get_all_subnets(account_number, region, cross_account_role):
                 'CidrBlock': str(i['CidrBlock']),
                 'AvailabilityZone': str(i['AvailabilityZone']),
                 'AvailabilityZoneId': str(i['AvailabilityZoneId']),
-                'SubnetId': str(i['SubnetId']),
+                'Id': str(i['SubnetId']),
                 'VpcId': str(i['VpcId']),
                 'SubnetArn': str(i['SubnetArn']),
                 'AvailableIpAddressCount': i['AvailableIpAddressCount'],
@@ -739,7 +755,7 @@ def get_all_ris(account_number, region, cross_account_role):
                     'InstanceType': str(i['InstanceType']),
                     'Scope': str(i['Scope']),
                     'ProductDescription': str(i['ProductDescription']),
-                    'ReservedInstancesId': str(i['ReservedInstancesId']),
+                    'Id': str(i['ReservedInstancesId']),
                     'Start': str(i['Start']),
                     'End': str(i['End']),
                     'InstanceTenancy': str(i['InstanceTenancy']),
@@ -785,7 +801,7 @@ def get_all_s3_buckets(account_number, cross_account_role):
 
         var_list.append(
             {
-                'Name': str(bucket_name),
+                'Id': str(bucket_name),
                 'Link': str(f'https://s3.console.aws.amazon.com/s3/buckets/{bucket_name}/?region={bucket_region}&tab=overview'),
                 'EntryType': 's3-buckets',
                 'AccountNumber': str(account_number),
@@ -797,76 +813,46 @@ def get_all_s3_buckets(account_number, cross_account_role):
     return var_list
 
 
-# Get data sitting in DynamoDB for each account
-def get_current_table(account_number, entry_type, region):
-
+# Get data sitting in DynamoDB
+def get_current_table(entry_type, region=None, account_number=None):
     try:
         # Scan dynamo for all data
-        response = table.query(
-            IndexName='EntryType-index',
-            KeyConditionExpression=Key('EntryType').eq(entry_type),
-            FilterExpression=Attr('AccountNumber').eq(account_number) &
-            Attr('Region').eq(region)
-        )
-
-        print(f"items from db query: {response['Items']}")
-        return response['Items']
-
-    except ClientError as e:
-        print(f'Error: failed to query dynamodb table... {e}')
-    except Exception as e:
-        print(f'Error: failed to query dynamodb table...{e}')
-
-
-# Get data sitting in DynamoDB without account look up
-def get_current_table_without_account(entry_type, region):
-
-    try:
-        # Scan dynamo for all data
-        response = table.query(
-            IndexName='EntryType-index',
-            KeyConditionExpression=Key('EntryType').eq(entry_type),
-            FilterExpression=Attr('Region').eq(region)
-        )
-
-        print(f"items from db query: {response['Items']}")
-        return response['Items']
-
+        params = {
+            'IndexName': 'EntryType-index',
+            'KeyConditionExpression': Key('EntryType').eq(entry_type),
+        }
+        
+        if account_number is not None and region is not None:
+            params['FilterExpression'] = Attr('AccountNumber').eq(account_number) & Attr('Region').eq(region)
+        elif account_number is not None:
+            params['FilterExpression'] = Attr('AccountNumber').eq(account_number)
+        elif region is not None:
+            params['FilterExpression'] = Attr('Region').eq(region)
+        
+        response = table.query(**params)
+        data = response['Items']
+        while 'LastEvaluatedKey' in response:
+            params["ExclusiveStartKey"] = response['LastEvaluatedKey']
+            response = table.query(**params)
+            data.extend(response['Items'])
+        
+        return data
+    
     except ClientError as e:
         print(f'Error: failed to query dynamodb table...{e}')
     except Exception as e:
         print(f'Error: failed to query dynamodb table...{e}')
 
 
-# Get data sitting in DynamoDB without region look up
-def get_current_table_without_region(account_number, entry_type):
-
-    try:
-        # Scan dynamo for all data
-        response = table.query(
-            IndexName='EntryType-index',
-            KeyConditionExpression=Key('EntryType').eq(entry_type),
-            FilterExpression=Attr('AccountNumber').eq(account_number)
-        )
-
-        print(f"items from db query: {response['Items']}")
-        return response['Items']
-
-    except ClientError as e:
-        print(f'Error: failed to query dynamodb table...{e}')
-    except Exception as e:
-        print(f'Error: failed to query dynamodb table...{e}')
-
-
-# DynamoDB Create Item
-def dynamo_create_item(dynamodb_item):
+# DynamoDB Create/Replace Item
+def dynamo_put_item(dynamodb_item):
 
     try:
 
         # Put item
         response = table.put_item(Item=dynamodb_item)
 
-        print(f'Sucessfully added {dynamodb_item}')
+        print(f'Successfully added/updated {dynamodb_item}')
         return response
 
     except ClientError as e:
@@ -885,7 +871,7 @@ def dynamo_delete_item(dynamodb_item):
                 'Id': dynamodb_item
             })
 
-        print(f'Sucessfully deleted {dynamodb_item}')
+        print(f'Successfully deleted {dynamodb_item}')
         return response
 
     except ClientError as e:
@@ -907,39 +893,17 @@ def dynamo_delete_all_items():
 
 
 # compare lists in dynamodb and boto3 calls
-def compare_lists_and_update(boto_list, dynamo_list, pop_list):
-
-    # remove Id key to compare current boto calls
-    for i in pop_list:
-        i.pop('Id')
-
-    if len(boto_list) >= 1:
-        for r in boto_list:
-            if r not in pop_list:
-                print('new item, updating entries now...')
-                r.update({'Id': str(uuid.uuid4())})
-                # Strip empty values
-                strip_empty_values = {k: v for k, v in r.items() if v}
-                dynamo_create_item(strip_empty_values)
-            else:
-                print('no update needed...')
-    else:
-        # Boto list has no values
-        print('list empty, skipping')
-
-    if len(dynamo_list) >= 1:
-        for i in dynamo_list:
-            old_id = i['Id']
-            i.pop('Id')
-            if i not in boto_list:
-                print('deleting entry as not current or present in boto call')
-                i.update({'Id': old_id})
-                dynamo_delete_item(i['Id'])
-            else:
-                print('item is in boto list, skipping')
-    else:
-        # Boto list has no values
-        print('list empty, skipping')
+def compare_lists_and_update(boto_list, dynamo_list):
+    current_ids = [item['Id'] for item in boto_list]
+    existing_ids = [item['Id'] for item in dynamo_list]
+    
+    for existing_id in existing_ids:
+        if existing_id not in current_ids:
+            dynamo_delete_item(existing_id)
+    
+    for resource in boto_list:
+        strip_empty_values = {k: v for k, v in resource.items() if v}
+        dynamo_put_item(strip_empty_values)
 
 
 # Logic to compare what current boto see's vs whats in dynamodb
@@ -1012,22 +976,16 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
             raise ValueError(f'Invalid function passed: {sqs_function}')
 
         if sqs_function == 'org':
-            dynamo_list = get_current_table_without_account(
-                entry_type=sqs_function, region='us-east-1')
-        # Don't search regions for global API's        
-        elif sqs_function == 's3-buckets' and 'iam-roles' and 'iam-users' and 'iam-attached-policys':
-            dynamo_list = get_current_table_without_region(
-                account_number=account_number, entry_type=sqs_function)
+            dynamo_list = get_current_table(entry_type=sqs_function, region='us-east-1')
+        # Don't search regions for global API's
+        elif sqs_function in ['s3-buckets', 'iam-roles', 'iam-users', 'iam-attached-policys']:
+            dynamo_list = get_current_table(entry_type=sqs_function, account_number=account_number)
         else:
-            dynamo_list = get_current_table(
-                account_number=account_number, entry_type=sqs_function, region=region)
-
-        # Deep copy instead of double dynamo read
-        pop_dynamo = copy.deepcopy(dynamo_list)
-
-        # remove Id key from dynamodb item and check if value has changed.
-        compare_lists_and_update(
-            boto_list=current_boto_list, dynamo_list=dynamo_list, pop_list=pop_dynamo)
+            dynamo_list = get_current_table(entry_type=sqs_function, region=region, account_number=account_number)
+        
+        print(f'Comparing: {sqs_function} {account_number} {region} current={len(current_boto_list)} prev={len(dynamo_list)}')
+        
+        compare_lists_and_update(boto_list=current_boto_list, dynamo_list=dynamo_list)
 
     except ClientError as e:
         print(f'Error: {sqs_function} in {account_number} in {region} - {e}')

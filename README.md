@@ -13,7 +13,7 @@ Serverless app designed for any customer with two or more accounts to view resou
 Current working examples are:
 
 - AWS Accounts in Organizations
-- EC2, ELB/ALB/NLB, Lambda, ODCR, Reserved Instances, RDS, EKS, Lightsail
+- EC2, CLB/ALB/NLB, Lambda, ODCR, Reserved Instances, RDS, EKS, Lightsail
 - IAM Users, Roles, Policy’s
 - VPCs, Subnets
 - S3 Buckets, EBS Volumes

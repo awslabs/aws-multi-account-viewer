@@ -68,7 +68,7 @@ export default class AllAttachedPolicys extends React.Component {
                 text: 'AttachmentCount',
                 sort: true
             }, {
-                dataField: 'Arn',
+                dataField: 'Id',
                 text: 'Arn',
                 sort: true
             }]

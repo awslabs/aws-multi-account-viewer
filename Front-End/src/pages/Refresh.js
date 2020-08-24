@@ -14,7 +14,7 @@ class Refresh extends React.Component {
         this.handleChange = this.handleChange.bind(this);
 
         this.state = {
-            inputvalue: '',
+            inputvalue: 'ec2',
             isLoading: false
         }
     }

@@ -105,7 +105,7 @@ export default class AllData extends React.Component {
                 sort: true,
                 hidden: true
             },{
-                dataField: 'Arn',
+                dataField: 'Id',
                 text: 'Arn',
                 sort: true,
                 hidden: true

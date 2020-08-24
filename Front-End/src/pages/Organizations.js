@@ -72,7 +72,7 @@ export default class Organizations extends React.Component {
                 text: 'Status',
                 sort: true
             }, {
-                dataField: 'Arn',
+                dataField: 'Id',
                 text: 'Arn',
                 sort: true
             },{

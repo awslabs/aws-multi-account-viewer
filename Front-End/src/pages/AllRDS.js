@@ -64,7 +64,7 @@ export default class AllRDS extends React.Component {
                 text: 'Region',
                 sort: true
             },{
-                dataField: 'DBInstanceIdentifier',
+                dataField: 'Id',
                 text: 'DBInstanceIdentifier',
                 sort: true
             }, {

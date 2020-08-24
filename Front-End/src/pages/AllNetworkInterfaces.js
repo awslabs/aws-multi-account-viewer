@@ -72,6 +72,10 @@ export default class AllNetworkInterfaces extends React.Component {
                 text: 'PrivateIpAddress',
                 sort: true
             }, {
+                dataField: 'Primary',
+                text: 'Primary',
+                sort: true
+            }, {
                 dataField: 'Status',
                 text: 'Status',
                 sort: true
@@ -86,6 +90,18 @@ export default class AllNetworkInterfaces extends React.Component {
             }, {
                 dataField: 'NetworkInterfaceId',
                 text: 'NetworkInterfaceId',
+                sort: true
+            }, {
+                dataField: 'SubnetId',
+                text: 'SubnetId',
+                sort: true
+            }, {
+                dataField: 'VpcId',
+                text: 'VpcId',
+                sort: true
+            }, {
+                dataField: 'CidrBlock',
+                text: 'CidrBlock',
                 sort: true
             }, {
                 dataField: 'Description',

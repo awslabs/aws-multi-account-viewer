@@ -76,7 +76,7 @@ export default class AllSubnets extends React.Component {
                 text: 'AvailabilityZoneId',
                 sort: true
             }, {
-                dataField: 'SubnetId',
+                dataField: 'Id',
                 text: 'SubnetId',
                 sort: true
             }, {

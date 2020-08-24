@@ -60,7 +60,7 @@ export default class AllRoles extends React.Component {
                 text: 'Account',
                 sort: true
             }, {
-                dataField: 'Name',
+                dataField: 'Id',
                 text: 'Name',
                 sort: true
             }, {
