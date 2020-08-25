@@ -53,8 +53,9 @@ export default class AllUsers extends React.Component {
         const columns = [
             {
                 dataField: 'Id',
-                text: 'Id',
+                text: 'Arn',
                 hidden: true,
+                sort: true
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',

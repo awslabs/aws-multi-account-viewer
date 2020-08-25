@@ -53,8 +53,8 @@ export default class AllVPCS extends React.Component {
         const columns = [
             {
                 dataField: 'Id',
-                text: 'Id',
-                hidden: true,
+                text: 'VpcId',
+                sort: true
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
@@ -62,10 +62,6 @@ export default class AllVPCS extends React.Component {
             }, {
                 dataField: 'Region',
                 text: 'Region',
-                sort: true
-            },{
-                dataField: 'Id',
-                text: 'VpcId',
                 sort: true
             }, {
                 dataField: 'CidrBlock',

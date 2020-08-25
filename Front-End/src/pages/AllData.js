@@ -55,9 +55,8 @@ export default class AllData extends React.Component {
         const columns = [
             {
                 dataField: 'Id',
-                text: 'Id',
-                hidden: true,
-                csvExport: false
+                text: 'Arn',
+                sort: true
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
@@ -102,11 +101,6 @@ export default class AllData extends React.Component {
             },{
                 dataField: 'InstancePlatform',
                 text: 'InstancePlatform',
-                sort: true,
-                hidden: true
-            },{
-                dataField: 'Id',
-                text: 'Arn',
                 sort: true,
                 hidden: true
             },{

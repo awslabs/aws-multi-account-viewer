@@ -720,9 +720,9 @@ def get_all_subnets(account_number, region, cross_account_role):
                 'CidrBlock': str(i['CidrBlock']),
                 'AvailabilityZone': str(i['AvailabilityZone']),
                 'AvailabilityZoneId': str(i['AvailabilityZoneId']),
-                'Id': str(i['SubnetId']),
+                'Id': str(i['SubnetArn']),
+                'SubnetId': str(i['SubnetId']),
                 'VpcId': str(i['VpcId']),
-                'SubnetArn': str(i['SubnetArn']),
                 'AvailableIpAddressCount': i['AvailableIpAddressCount'],
                 'Tags': str(i.get('Tags', 'No Tags Exist'))
             })
@@ -914,7 +914,6 @@ def compare_and_update_function(account_number, region, sqs_function, cross_acco
         # init
         current_boto_list = []
         dynamo_list = []
-        pop_dynamo = []
 
         # Get Current Boto Data
         if sqs_function == 'lambda':
