@@ -53,15 +53,11 @@ export default class AllRoles extends React.Component {
         const columns = [
             {
                 dataField: 'Id',
-                text: 'Id',
-                hidden: true,
+                text: 'Name',
+                sort: true,
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
-                sort: true
-            }, {
-                dataField: 'Id',
-                text: 'Name',
                 sort: true
             }, {
                 dataField: 'Region',

@@ -54,8 +54,7 @@ export default class AllEC2 extends React.Component {
             {
                 dataField: 'Id',
                 text: 'Id',
-                hidden: true,
-                csvExport: false
+                sort: true
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
@@ -67,10 +66,6 @@ export default class AllEC2 extends React.Component {
             }, {
                 dataField: 'vCPU',
                 text: 'vCPU',
-                sort: true
-            }, {
-                dataField: 'Id',
-                text: 'InstanceId',
                 sort: true
             }, {
                 dataField: 'InstanceType',

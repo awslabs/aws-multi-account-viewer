@@ -116,6 +116,7 @@ def lambda_handler(event, context):
             'odcr',
             'lightsail',
             'network-interfaces',
+            'subnet',
             'vpc',
             'ri',
             'eks',
@@ -125,7 +126,7 @@ def lambda_handler(event, context):
         # Only Allow functions in this list
         if passed_function not in allowed_functions:
             print('passed function isnt on allowed list')
-            return reply(message='passed function isnt on allowed list', status_code=500)
+            return reply(message=f'passed function: {passed_function} isnt on allowed list', status_code=500)
 
         else:
 

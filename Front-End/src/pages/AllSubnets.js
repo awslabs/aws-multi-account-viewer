@@ -53,16 +53,18 @@ export default class AllSubnets extends React.Component {
         const columns = [
             {
                 dataField: 'Id',
-                text: 'Id',
-                hidden: true,
+                text: 'Arn',
+                sort: true
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
-                sort: true
+                sort: true,
+                hidden: true
             }, {
                 dataField: 'Region',
                 text: 'Region',
-                sort: true
+                sort: true,
+                hidden: true
             },{
                 dataField: 'CidrBlock',
                 text: 'CidrBlock',
@@ -74,10 +76,6 @@ export default class AllSubnets extends React.Component {
             }, {
                 dataField: 'AvailabilityZoneId',
                 text: 'AvailabilityZoneId',
-                sort: true
-            }, {
-                dataField: 'Id',
-                text: 'SubnetId',
                 sort: true
             }, {
                 dataField: 'VpcId',

@@ -55,6 +55,7 @@ export default class Organizations extends React.Component {
                 dataField: 'Id',
                 text: 'Id',
                 hidden: true,
+                sort: true
             }, {
                 dataField: 'AccountNumber',
                 text: 'Account',
@@ -72,14 +73,10 @@ export default class Organizations extends React.Component {
                 text: 'Status',
                 sort: true
             }, {
-                dataField: 'Id',
-                text: 'Arn',
-                sort: true
-            },{
                 dataField: 'Tags',
                 text: 'Tags',
                 sort: true
-            },{
+            }, {
                 dataField: 'JoinedMethod',
                 text: 'JoinedMethod',
                 sort: true
