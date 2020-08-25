@@ -45,7 +45,7 @@ Amplify.configure({
     endpoints: [
       {
         name: "MyAPIGatewayAPI",
-        endpoint: process.env.REACT_APP_PIG_ENDPOINT,
+        endpoint: process.env.REACT_APP_APIG_ENDPOINT,
         region: 'ap-southeast-2',
         custom_header: async () => {
           return { Authorization: (await Auth.currentSession()).idToken.jwtToken };
