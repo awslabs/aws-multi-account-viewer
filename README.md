@@ -106,7 +106,9 @@ AutoScaling is configured for DynamoDB so it will between the 2 parameters you s
 
 ![](images/cloudformation-outputs.png)
 
-- Paste the outputs into /aws-multi-account-viewer/Front-End/src/App.js
+- Paste the outputs into [Front-End/.env](Front-End/.env), or directly into
+[Front-End/src/App.js](Front-End/src/App.js):
+
 
 ![](images/cognito.png)
 
