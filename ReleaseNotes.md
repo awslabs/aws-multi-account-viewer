@@ -25,3 +25,4 @@
 10. Updated the `get_all_network_interfaces` function in
     [Back-End/lambdas/receive_sqs_message.py](Back-End/lambdas/receive_sqs_message.py) to include `SubnetId`,
     `VpcId` and `CidrBlock` to support querying which account/VPC/Subnet a given IP is located at within a single tab.
+    
