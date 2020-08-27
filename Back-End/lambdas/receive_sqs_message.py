@@ -668,30 +668,27 @@ def get_all_network_interfaces(account_number, region, cross_account_role):
 
     for page in paginator.paginate():
         for i in page['NetworkInterfaces']:
-            data = {
-                'EntryType': 'network-interfaces',
-                'PrivateIpAddress': str(i.get('PrivateIpAddress', ' ')),
-                'PublicIp': str(i.get('Association', {}).get('PublicIp', ' ')),
-                'AccountNumber': str(account_number),
-                'Region': str(region),
-                'Status': str(i.get('Status', ' ')),
-                'Link': str(f"https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#NIC:sort=networkInterfaceId"),
-                'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
-                'InterfaceType': str(i.get('InterfaceType', ' ')),
-                'NetworkInterfaceId': str(i.get('NetworkInterfaceId', ' ')),
-                'SubnetId': str(i.get('SubnetId', ' ')),
-                'VpcId': str(i.get('VpcId', ' ')),
-                'CidrBlock': str(get_subnet(i.get('SubnetId')).get('CidrBlock', ' ')),
-                'Tags': str(i.get('TagSet', 'No Tags Exist')),
-                'Description': str(i.get('Description', ' '))
-            }
+            subnet = get_subnet(i.get('SubnetId'))
 
-            for ip in i["PrivateIpAddresses"]:
-                data.update({
-                    'Id': f"{i['NetworkInterfaceId']}-{ip['PrivateIpAddress']}",
-                    'PrivateIpAddress': ip['PrivateIpAddress'],
+            for ip in i.get('PrivateIpAddresses', []):
+                var_list.append({
+                    'EntryType': 'network-interfaces',
+                    'Id': f"{i.get('NetworkInterfaceId')}-{ip['PrivateIpAddress']}",
+                    'NetworkInterfaceId': str(i.get('NetworkInterfaceId')),
+                    'AccountNumber': str(account_number),
+                    'Region': str(region),
+                    'PrivateIpAddress': ip.get('PrivateIpAddress', ' '),
                     'PublicIp': ip.get('Association', {}).get('PublicIp', ' '),
-                    'Primary': ip['Primary'],
+                    'Primary': str(ip.get('Primary', ' ')),
+                    'Status': str(i.get('Status', ' ')),
+                    'Link': str(f"https://{region}.console.aws.amazon.com/ec2/v2/home?region={region}#NIC:sort=networkInterfaceId"),
+                    'AttStatus': str(i.get('Attachment', {}).get('Status', ' ')),
+                    'InterfaceType': str(i.get('InterfaceType', ' ')),
+                    'SubnetId': str(i.get('SubnetId', ' ')),
+                    'VpcId': str(i.get('VpcId', ' ')),
+                    'CidrBlock': str(subnet.get('CidrBlock', ' ')),
+                    'Tags': str(i.get('TagSet', 'No Tags Exist')),
+                    'Description': str(i.get('Description', ' '))
                 })
 
     return var_list
